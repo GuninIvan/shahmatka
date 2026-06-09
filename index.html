@@ -778,25 +778,22 @@ function saveCell(){
   render();
   setSt('spin', 'Сохранение…');
 
-  // 4. Отправляем в Google Sheets в фоне
-  fetch(API, {
-    method: 'POST',
-    headers: {'Content-Type':'text/plain'},
-    body: JSON.stringify({
-      action:  'update',
-      section: savedCUR.sec,
-      floor:   savedCUR.floor,
-      work:    savedCUR.work,
-      pct:     pctNew,
-      who:     userName || 'Аноним'
-    })
-  })
+  // 4. Отправляем в Google Sheets в фоне через GET (быстрее чем POST у Apps Script)
+  const p = new URLSearchParams({
+    action:  'update',
+    section: String(savedCUR.sec),
+    floor:   String(savedCUR.floor),
+    work:    savedCUR.work,
+    pct:     String(pctNew),
+    who:     userName || 'Аноним'
+  });
+  fetch(API + '?' + p.toString())
   .then(r => r.json())
   .then(j => {
     if(j.error) throw new Error(j.error);
     if(DATA[savedCUR.key]) DATA[savedCUR.key].updatedAt = j.updatedAt || '';
-    setSt('ok', 'Сохранено · '+now.toLocaleTimeString('ru'));
-    toast('Сохранено ✓', 'ok');
+    setSt('ok', 'Сохранено · ' + now.toLocaleTimeString('ru'));
+    toast('✓ Сохранено', 'ok');
   })
   .catch(e => {
     // Откатываем если ошибка
