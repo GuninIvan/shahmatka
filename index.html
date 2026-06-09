@@ -754,52 +754,58 @@ function closeModal(e){
 function updPct(v){ document.getElementById('pctBig').textContent = v+'%'; }
 function setPct(v){ document.getElementById('pctSl').value=v; document.getElementById('pctBig').textContent=v+'%'; }
 
-// ── SAVE ──────────────────────────────────────────────────────────
-async function saveCell(){
+// ── SAVE (оптимистичное обновление) ──────────────────────────────
+function saveCell(){
   if(!CUR) return;
   const pctNew = parseInt(document.getElementById('pctSl').value);
   const pctOld = DATA[CUR.key]?.pct || 0;
-  const btn = document.getElementById('saveBtn');
-  btn.textContent = 'Сохранение…'; btn.disabled = true;
-  try {
-    const r = await fetch(API, {
-      method: 'POST',
-      headers: {'Content-Type':'text/plain'},
-      body: JSON.stringify({
-        action:'update',
-        section: CUR.sec,
-        floor:   CUR.floor,
-        work:    CUR.work,
-        pct:     pctNew,
-        who:     userName || 'Аноним'
-      })
-    });
-    const j = await r.json();
+  const savedCUR = {...CUR};
+
+  // 1. Сразу обновляем локальные данные
+  if(!DATA[savedCUR.key]) DATA[savedCUR.key]={pct:0,updatedAt:'',planDate:'',factDate:''};
+  DATA[savedCUR.key].pct = pctNew;
+
+  // 2. Пишем в историю локально
+  if(!HISTORY[savedCUR.key]) HISTORY[savedCUR.key]=[];
+  const now = new Date();
+  const dateStr = now.toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+  HISTORY[savedCUR.key].unshift({
+    who: userName||'Аноним', pctWas: pctOld, pctNow: pctNew, date: dateStr
+  });
+
+  // 3. Закрываем модалку и перерисовываем — мгновенно
+  closeModal();
+  render();
+  setSt('spin', 'Сохранение…');
+
+  // 4. Отправляем в Google Sheets в фоне
+  fetch(API, {
+    method: 'POST',
+    headers: {'Content-Type':'text/plain'},
+    body: JSON.stringify({
+      action:  'update',
+      section: savedCUR.sec,
+      floor:   savedCUR.floor,
+      work:    savedCUR.work,
+      pct:     pctNew,
+      who:     userName || 'Аноним'
+    })
+  })
+  .then(r => r.json())
+  .then(j => {
     if(j.error) throw new Error(j.error);
-
-    // Обновляем локально
-    if(!DATA[CUR.key]) DATA[CUR.key]={pct:0,updatedAt:'',planDate:'',factDate:''};
-    DATA[CUR.key].pct = pctNew;
-    DATA[CUR.key].updatedAt = j.updatedAt || '';
-
-    // История локально
-    if(!HISTORY[CUR.key]) HISTORY[CUR.key]=[];
-    const now = new Date();
-    HISTORY[CUR.key].unshift({
-      who: userName||'Аноним',
-      pctWas: pctOld,
-      pctNow: pctNew,
-      date: now.toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})
-    });
-
-    closeModal();
+    if(DATA[savedCUR.key]) DATA[savedCUR.key].updatedAt = j.updatedAt || '';
+    setSt('ok', 'Сохранено · '+now.toLocaleTimeString('ru'));
+    toast('Сохранено ✓', 'ok');
+  })
+  .catch(e => {
+    // Откатываем если ошибка
+    if(DATA[savedCUR.key]) DATA[savedCUR.key].pct = pctOld;
+    HISTORY[savedCUR.key]?.shift();
     render();
-    toast('Сохранено ✓','ok');
-  } catch(e) {
-    toast('Ошибка: '+e.message,'err');
-  } finally {
-    btn.textContent='Сохранить'; btn.disabled=false;
-  }
+    setSt('err', 'Ошибка сохранения');
+    toast('Не сохранилось — попробуй ещё раз', 'err', 4000);
+  });
 }
 
 // ── HELPERS ──────────────────────────────────────────────────────
