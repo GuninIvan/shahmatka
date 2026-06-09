@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Шахматка · Приёмка работ</title>
+<style>
+:root {
+  --bg: #f0f2f5;
+  --bg2: #ffffff;
+  --bg3: #f7f8fa;
+  --brd: #e2e5eb;
+  --brd2: #c8cdd8;
+  --ink: #1a1d24;
+  --ink2: #5a6070;
+  --ink3: #9aa0b0;
+  --acc: #2563eb;
+  --r: 6px;
+  --mono: 'SF Mono', 'Fira Mono', monospace;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* Цвета статусов */
+  --c0: #d1d5db;   /* 0% серый */
+  --c1: #fb923c;   /* 1-50% оранжевый */
+  --c2: #facc15;   /* 51-99% жёлтый */
+  --c3: #4ade80;   /* 100% зелёный */
+  --c0t: #6b7280;
+  --c1t: #7c2d12;
+  --c2t: #713f12;
+  --c3t: #14532d;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: var(--sans); background: var(--bg); color: var(--ink); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+/* ── TOPBAR ── */
+.topbar { display: flex; align-items: center; gap: 10px; padding: 0 16px; height: 48px; background: var(--bg2); border-bottom: 1px solid var(--brd); flex-shrink: 0; }
+.logo { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+.logo-badge { background: var(--acc); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+.sep { width: 1px; height: 18px; background: var(--brd2); flex-shrink: 0; }
+.btn { padding: 5px 12px; border-radius: var(--r); border: 1px solid var(--brd2); background: var(--bg3); color: var(--ink2); font-family: var(--sans); font-size: 12px; font-weight: 500; cursor: pointer; transition: all .12s; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; }
+.btn:hover { border-color: var(--acc); color: var(--acc); }
+.btn-pri { background: var(--acc); border-color: var(--acc); color: #fff; }
+.btn-pri:hover { background: #1d4ed8; border-color: #1d4ed8; color: #fff; }
+.sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ink3); flex-shrink: 0; }
+.sync-dot.ok { background: #22c55e; }
+.sync-dot.err { background: #ef4444; }
+.sync-dot.spin { background: #f59e0b; animation: pulse .8s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.2} }
+.sync-txt { font-size: 11px; color: var(--ink3); }
+.sync-txt.ok { color: #16a34a; }
+.sync-txt.err { color: #ef4444; }
+.tb-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.name-inp { padding: 5px 9px; background: var(--bg3); border: 1px solid var(--brd2); border-radius: var(--r); color: var(--ink); font-family: var(--sans); font-size: 12px; outline: none; width: 140px; }
+.name-inp:focus { border-color: var(--acc); }
+
+/* ── FILTERBAR ── */
+.filterbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 6px 16px; background: var(--bg2); border-bottom: 1px solid var(--brd); flex-shrink: 0; }
+.fl { font-size: 10px; color: var(--ink3); text-transform: uppercase; letter-spacing: .07em; white-space: nowrap; }
+.chips { display: flex; gap: 4px; flex-wrap: wrap; }
+.chip { padding: 3px 10px; border-radius: 14px; font-size: 11px; font-weight: 500; border: 1px solid var(--brd2); background: var(--bg3); color: var(--ink3); cursor: pointer; transition: all .1s; }
+.chip:hover { border-color: var(--acc); color: var(--acc); }
+.chip.on { background: var(--acc); border-color: var(--acc); color: #fff; }
+.fsel { padding: 4px 8px; border-radius: var(--r); border: 1px solid var(--brd2); background: var(--bg3); color: var(--ink2); font-size: 11px; font-family: var(--sans); outline: none; cursor: pointer; }
+.fsel:focus { border-color: var(--acc); }
+
+/* ── BOARD ── */
+.board-wrap { flex: 1; overflow: auto; position: relative; }
+.board-wrap::-webkit-scrollbar { width: 5px; height: 5px; }
+.board-wrap::-webkit-scrollbar-thumb { background: var(--brd2); border-radius: 3px; }
+
+/* ── LOADER ── */
+.loader { display: none; position: absolute; inset: 0; background: rgba(240,242,245,.9); z-index: 100; align-items: center; justify-content: center; flex-direction: column; gap: 10px; }
+.loader.on { display: flex; }
+.spin { width: 28px; height: 28px; border: 2px solid var(--brd2); border-top-color: var(--acc); border-radius: 50%; animation: rot .6s linear infinite; }
+@keyframes rot { to { transform: rotate(360deg) } }
+.loader-txt { font-size: 12px; color: var(--ink2); }
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 80px 24px; color: var(--ink3); }
+.empty-ico { font-size: 36px; opacity: .2; }
+.empty-ttl { font-size: 14px; font-weight: 500; color: var(--ink2); }
+
+/* ── TABLE ── */
+table { border-collapse: separate; border-spacing: 0; min-width: max-content; }
+thead { position: sticky; top: 0; z-index: 50; }
+th.corner { position: sticky; left: 0; top: 0; z-index: 60; background: var(--bg2); min-width: 52px; border-right: 2px solid var(--brd2); border-bottom: 2px solid var(--brd2); text-align: center; padding: 4px; }
+.corner-lbl { font-family: var(--mono); font-size: 9px; color: var(--ink3); text-transform: uppercase; letter-spacing: .1em; }
+th.h-work { background: var(--bg2); font-size: 11px; font-weight: 600; color: var(--ink); text-align: center; padding: 6px 5px; border-bottom: 2px solid var(--brd2); border-right: 1px solid var(--brd); width: 88px; min-width: 88px; white-space: normal; word-break: break-word; line-height: 1.2; vertical-align: middle; }
+th.h-section { background: var(--bg3); font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--acc); text-align: center; padding: 4px 8px; border-bottom: 1px solid var(--brd2); border-right: 1px solid var(--brd); }
+td.rh { position: sticky; left: 0; z-index: 10; background: var(--bg2); min-width: 52px; border-right: 2px solid var(--brd2); border-bottom: 1px solid var(--brd); text-align: center; vertical-align: middle; padding: 0; }
+.rh-inner { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 36px; }
+.rh-num { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--ink); }
+.rh-lbl { font-size: 8px; color: var(--ink3); text-transform: uppercase; }
+td.rh.group-hdr { background: var(--bg3); text-align: left; padding: 4px 8px; font-size: 10px; font-weight: 700; color: var(--ink2); text-transform: uppercase; letter-spacing: .06em; border-top: 2px solid var(--brd2); }
+td.cell { border-right: 1px solid var(--brd); border-bottom: 1px solid var(--brd); width: 88px; min-width: 88px; height: 36px; padding: 0; vertical-align: middle; cursor: pointer; position: relative; transition: filter .1s; }
+td.cell:hover { filter: brightness(.92); }
+td.cell.na { background: #e5e7eb; cursor: default; pointer-events: none; }
+td.cell.sel { outline: 2px solid var(--acc); outline-offset: -2px; }
+.ci { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 36px; gap: 1px; }
+.c-pct { font-family: var(--mono); font-size: 12px; font-weight: 700; line-height: 1; }
+.c-bar { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: rgba(0,0,0,.08); }
+.c-bar-fill { height: 100%; transition: width .3s; }
+
+/* ── STATUS BAR ── */
+.stb { display: flex; align-items: center; gap: 0; padding: 0 16px; height: 26px; background: var(--bg2); border-top: 1px solid var(--brd); flex-shrink: 0; font-size: 10px; color: var(--ink3); }
+.si { display: flex; align-items: center; gap: 4px; padding: 0 10px; border-right: 1px solid var(--brd); height: 100%; }
+.si:first-child { padding-left: 0; }
+.sn { font-family: var(--mono); font-size: 12px; font-weight: 700; }
+.sn.g { color: #16a34a; } .sn.o { color: #ea580c; } .sn.y { color: #ca8a04; }
+.hint { margin-left: auto; font-size: 10px; color: var(--ink3); }
+
+/* ── LEGEND ── */
+.legend { display: flex; align-items: center; gap: 12px; padding: 5px 16px; background: var(--bg2); border-bottom: 1px solid var(--brd); flex-shrink: 0; }
+.leg { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--ink2); }
+.leg-dot { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+
+/* ── MODAL ── */
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 200; align-items: center; justify-content: center; }
+.overlay.on { display: flex; }
+.modal { background: var(--bg2); border-radius: 12px; border: 1px solid var(--brd2); padding: 0; width: 340px; max-width: 96vw; box-shadow: 0 8px 32px rgba(0,0,0,.18); overflow: hidden; }
+.mo-head { padding: 14px 16px 10px; border-bottom: 1px solid var(--brd); }
+.mo-title { font-size: 14px; font-weight: 600; color: var(--ink); }
+.mo-sub { font-size: 11px; color: var(--ink3); margin-top: 2px; }
+.mo-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+.fg { display: flex; flex-direction: column; gap: 6px; }
+.fg-lbl { font-size: 10px; font-weight: 700; color: var(--ink3); text-transform: uppercase; letter-spacing: .08em; }
+.pct-row { display: flex; align-items: center; gap: 10px; }
+.pct-sl { flex: 1; -webkit-appearance: none; height: 4px; background: var(--brd2); border-radius: 2px; outline: none; cursor: pointer; }
+.pct-sl::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--acc); border: 2px solid #fff; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,.2); }
+.pct-big { font-family: var(--mono); font-size: 22px; font-weight: 700; color: var(--ink); min-width: 52px; text-align: right; }
+.pct-btns { display: flex; gap: 4px; flex-wrap: wrap; }
+.pct-b { padding: 3px 8px; border-radius: 4px; border: 1px solid var(--brd2); background: var(--bg3); color: var(--ink2); font-family: var(--mono); font-size: 11px; cursor: pointer; transition: all .09s; }
+.pct-b:hover { border-color: var(--acc); color: var(--acc); }
+.hist-block { background: var(--bg3); border-radius: var(--r); padding: 8px 10px; }
+.hist-title { font-size: 10px; font-weight: 700; color: var(--ink3); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 6px; }
+.hist-row { font-size: 11px; padding: 3px 0; border-bottom: 1px solid var(--brd); color: var(--ink2); }
+.hist-row:last-child { border-bottom: none; }
+.hist-who { font-weight: 600; color: var(--ink); }
+.hist-empty { font-size: 11px; color: var(--ink3); font-style: italic; }
+.mo-foot { padding: 10px 16px 14px; border-top: 1px solid var(--brd); display: flex; gap: 8px; justify-content: flex-end; }
+
+/* ── PROGRESS ── */
+.prog-wrap { display: flex; gap: 12px; flex-wrap: wrap; padding: 6px 16px; background: var(--bg2); border-bottom: 1px solid var(--brd); flex-shrink: 0; }
+.prog-item { display: flex; align-items: center; gap: 6px; }
+.prog-lbl { font-size: 10px; color: var(--ink2); white-space: nowrap; }
+.prog-bar { width: 80px; height: 5px; background: var(--bg); border-radius: 3px; overflow: hidden; }
+.prog-fill { height: 100%; background: #4ade80; border-radius: 3px; transition: width .3s; }
+.prog-pct { font-family: var(--mono); font-size: 10px; color: var(--ink2); min-width: 28px; }
+
+/* ── TOASTS ── */
+.toasts { position: fixed; bottom: 24px; right: 16px; z-index: 999; display: flex; flex-direction: column; gap: 4px; pointer-events: none; }
+.toast { padding: 8px 14px; border-radius: var(--r); font-size: 12px; font-weight: 500; animation: tIn .15s ease; max-width: 300px; }
+@keyframes tIn { from{transform:translateX(10px);opacity:0} to{transform:none;opacity:1} }
+.toast.ok { background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; }
+.toast.err { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; }
+.toast.inf { background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; }
+
+@media (max-width: 600px) {
+  .topbar { padding: 0 10px; gap: 6px; }
+  .filterbar { padding: 5px 10px; }
+  .legend { padding: 4px 10px; }
+  .prog-wrap { padding: 5px 10px; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo">
+    <span class="logo-badge">СТР</span>
+    Шахматка приёмки
+  </div>
+  <div class="sep"></div>
+  <button class="btn" onclick="loadAll()">↻ Обновить</button>
+  <div class="sync-dot" id="sdot"></div>
+  <span class="sync-txt" id="stxt">Загрузка…</span>
+  <div class="tb-right">
+    <span style="font-size:11px;color:var(--ink3);">👤</span>
+    <input class="name-inp" id="nameInp" placeholder="Ваше имя…" oninput="saveName(this.value)">
+    <div class="sep"></div>
+    <div class="chips">
+      <span class="chip on" id="mode-sec" onclick="setMode('section')">По секции</span>
+      <span class="chip" id="mode-work" onclick="setMode('work')">По виду работ</span>
+    </div>
+  </div>
+</div>
+
+<!-- FILTERBAR -->
+<div class="filterbar">
+  <span class="fl">Секция:</span>
+  <div class="chips" id="secChips"></div>
+  <div class="sep"></div>
+  <span class="fl">Этаж:</span>
+  <select class="fsel" id="floorSel" onchange="render()"><option value="">Все</option></select>
+</div>
+
+<!-- LEGEND -->
+<div class="legend">
+  <div class="leg"><div class="leg-dot" style="background:var(--c0)"></div> 0%</div>
+  <div class="leg"><div class="leg-dot" style="background:var(--c1)"></div> 1–50%</div>
+  <div class="leg"><div class="leg-dot" style="background:var(--c2)"></div> 51–99%</div>
+  <div class="leg"><div class="leg-dot" style="background:var(--c3)"></div> 100%</div>
+</div>
+
+<!-- PROGRESS -->
+<div class="prog-wrap" id="progWrap"></div>
+
+<!-- BOARD -->
+<div class="board-wrap" id="bwrap">
+  <div class="loader" id="loader"><div class="spin"></div><div class="loader-txt" id="loaderTxt">Загрузка…</div></div>
+  <div class="empty-state" id="emptyState">
+    <div class="empty-ico">🏗</div>
+    <div class="empty-ttl">Загрузка данных…</div>
+  </div>
+  <table id="board" style="display:none"></table>
+</div>
+
+<!-- STATUSBAR -->
+<div class="stb">
+  <div class="si"><span class="sn" id="sbTotal">0</span>&nbsp;всего</div>
+  <div class="si"><span class="sn g" id="sbDone">0</span>&nbsp;готово</div>
+  <div class="si"><span class="sn o" id="sbInProg">0</span>&nbsp;в работе</div>
+  <div class="si"><span class="sn y" id="sbPartial">0</span>&nbsp;частично</div>
+  <div class="hint">Нажмите на ячейку чтобы обновить процент</div>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="mo-head">
+      <div class="mo-title" id="moTitle">Редактирование</div>
+      <div class="mo-sub" id="moSub"></div>
+    </div>
+    <div class="mo-body">
+      <div class="fg">
+        <div class="fg-lbl">Процент выполнения</div>
+        <div class="pct-row">
+          <input type="range" class="pct-sl" id="pctSl" min="0" max="100" step="1" value="0" oninput="updPct(this.value)">
+          <div class="pct-big" id="pctBig">0%</div>
+        </div>
+        <div class="pct-btns">
+          <button class="pct-b" onclick="setPct(0)">0</button>
+          <button class="pct-b" onclick="setPct(25)">25</button>
+          <button class="pct-b" onclick="setPct(50)">50</button>
+          <button class="pct-b" onclick="setPct(75)">75</button>
+          <button class="pct-b" onclick="setPct(90)">90</button>
+          <button class="pct-b" onclick="setPct(100)">100</button>
+        </div>
+      </div>
+      <div class="hist-block">
+        <div class="hist-title">История</div>
+        <div id="histBody"></div>
+      </div>
+    </div>
+    <div class="mo-foot">
+      <button class="btn" onclick="closeModal()">Отмена</button>
+      <button class="btn btn-pri" id="saveBtn" onclick="saveCell()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+const API = 'https://script.google.com/macros/s/AKfycbzEXg-pV4xOZmZ0uEmlcrJwbf3L9yCxkHkS9G_Tvm8omk6d3q24iyClcKFWcZ7-FjfXVw/exec';
+
+let CONFIG = { works: [], sections: [] };
+let DATA = {};      // key → {pct, updatedAt}
+let HISTORY = {};   // key → [{who,pctWas,pctNow,date}]
+let MODE = 'section';
+let FILTER_SEC = new Set();
+let FILTER_FLOOR = '';
+let CUR = null;     // {section, floor, work, key}
+let userName = '';
+
+// ── INIT ──────────────────────────────────────────────────────────
+window.onload = async () => {
+  userName = localStorage.getItem('shk_name') || '';
+  if (userName) document.getElementById('nameInp').value = userName;
+  await loadAll();
+};
+
+function saveName(v) {
+  userName = v.trim();
+  localStorage.setItem('shk_name', userName);
+}
+
+// ── LOAD ──────────────────────────────────────────────────────────
+async function loadAll() {
+  setSt('spin', 'Загрузка…');
+  showLoader('Загрузка из Google Sheets…');
+  try {
+    const [cfgRes, dataRes] = await Promise.all([
+      fetch(API + '?action=config&t=' + Date.now()),
+      fetch(API + '?action=data&t=' + Date.now())
+    ]);
+    const cfg = await cfgRes.json();
+    const dat = await dataRes.json();
+    if (cfg.error) throw new Error(cfg.error);
+
+    CONFIG.works = cfg.works || [];
+    CONFIG.sections = cfg.sections || [];
+
+    // Парсим данные из листа База данных
+    DATA = {};
+    HISTORY = {};
+    (dat.rows || []).forEach(r => {
+      const k = makeKey(r['Секция'], r['Этаж'], r['Вид работ']);
+      DATA[k] = {
+        pct: parseFloat(r['% выполнения']) || 0,
+        updatedAt: r['Обновлено'] || ''
+      };
+    });
+
+    buildFilters();
+    render();
+    setSt('ok', 'Загружено · ' + new Date().toLocaleTimeString('ru'));
+    toast('Данные загружены', 'ok');
+  } catch(e) {
+    setSt('err', e.message);
+    toast('Ошибка: ' + e.message, 'err');
+    document.getElementById('emptyState').style.display = 'flex';
+    document.getElementById('board').style.display = 'none';
+  }
+  hideLoader();
+}
+
+// ── FILTERS ──────────────────────────────────────────────────────
+function buildFilters() {
+  const el = document.getElementById('secChips');
+  el.innerHTML = '<span class="chip on" onclick="setSec(this,\'\')">Все</span>';
+  CONFIG.sections.forEach(s => {
+    el.innerHTML += `<span class="chip" onclick="setSec(this,'${s['Секция']}')">${s['Секция']} сек.</span>`;
+  });
+
+  const fl = document.getElementById('floorSel');
+  fl.innerHTML = '<option value="">Все этажи</option>';
+  // Собираем все этажи из секций
+  const floors = new Set();
+  CONFIG.sections.forEach(s => {
+    const below = parseInt(s['Этажи ниже 0.000']) || 0;
+    const above = parseInt(s['Этажи выше 0.000']) || 0;
+    for (let f = -below; f <= above; f++) {
+      if (f !== 0) floors.add(f);
+    }
+  });
+  [...floors].sort((a,b) => b - a).forEach(f => {
+    fl.innerHTML += `<option value="${f}">${f > 0 ? f : f} эт.</option>`;
+  });
+}
+
+function setSec(el, v) {
+  if (v === '') {
+    FILTER_SEC.clear();
+    document.querySelectorAll('#secChips .chip').forEach(c => c.classList.remove('on'));
+    document.querySelector('#secChips .chip').classList.add('on');
+  } else {
+    const val = String(v);
+    if (FILTER_SEC.has(val)) FILTER_SEC.delete(val); else FILTER_SEC.add(val);
+    document.querySelectorAll('#secChips .chip').forEach(c => {
+      const cv = c.textContent.replace(' сек.', '');
+      if (cv === 'Все') c.classList.toggle('on', FILTER_SEC.size === 0);
+      else c.classList.toggle('on', FILTER_SEC.has(cv));
+    });
+    if (FILTER_SEC.size === 0) document.querySelector('#secChips .chip').classList.add('on');
+  }
+  render();
+}
+
+function setMode(m) {
+  MODE = m;
+  document.getElementById('mode-sec').classList.toggle('on', m === 'section');
+  document.getElementById('mode-work').classList.toggle('on', m === 'work');
+  render();
+}
+
+// ── KEY ──────────────────────────────────────────────────────────
+function makeKey(sec, floor, work) {
+  return [String(sec||''), String(floor||''), String(work||'')].join('|||');
+}
+
+function getPct(sec, floor, work) {
+  return DATA[makeKey(sec, floor, work)]?.pct || 0;
+}
+
+// ── COLOR ─────────────────────────────────────────────────────────
+function pctColor(pct) {
+  if (pct === 0)         return { bg: 'var(--c0)', text: 'var(--c0t)' };
+  if (pct <= 50)         return { bg: 'var(--c1)', text: 'var(--c1t)' };
+  if (pct < 100)         return { bg: 'var(--c2)', text: 'var(--c2t)' };
+  return                        { bg: 'var(--c3)', text: 'var(--c3t)' };
+}
+
+// ── RENDER ────────────────────────────────────────────────────────
+function render() {
+  FILTER_FLOOR = document.getElementById('floorSel').value;
+  const board = document.getElementById('board');
+  const empty = document.getElementById('emptyState');
+
+  if (!CONFIG.sections.length) {
+    board.style.display = 'none';
+    empty.style.display = 'flex';
+    return;
+  }
+
+  board.style.display = 'table';
+  empty.style.display = 'none';
+
+  if (MODE === 'section') renderBySection(board);
+  else renderByWork(board);
+
+  renderProgress();
+  renderSB();
+}
+
+function renderBySection(board) {
+  const sections = CONFIG.sections.filter(s =>
+    FILTER_SEC.size === 0 || FILTER_SEC.has(String(s['Секция']))
+  );
+
+  // Разделяем работы по типу
+  const worksFloor = CONFIG.works.filter(w => w['Единица приемки'] === 'Этаж секция');
+  const worksSec   = CONFIG.works.filter(w => w['Единица приемки'] === 'Секция');
+  const worksObj   = CONFIG.works.filter(w => w['Единица приемки'] === 'Площадка');
+
+  let h = '<thead><tr>';
+  h += '<th class="corner"><div class="corner-lbl">Этаж</div></th>';
+
+  // Для каждой секции — колонки с работами
+  sections.forEach(s => {
+    const applicableWorks = worksFloor.filter(w => isWorkApplicable(w, s['Секция'], null));
+    const secWorkCount = applicableWorks.length || 1;
+    h += `<th class="h-section" colspan="${secWorkCount}">Секция ${s['Секция']}</th>`;
+  });
+  h += '</tr><tr><th class="corner"></th>';
+
+  sections.forEach(s => {
+    const applicableWorks = worksFloor.filter(w => isWorkApplicable(w, s['Секция'], null));
+    if (!applicableWorks.length) {
+      h += '<th class="h-work">—</th>';
+    } else {
+      applicableWorks.forEach(w => {
+        h += `<th class="h-work">${esc(w['Вид работ'])}</th>`;
+      });
+    }
+  });
+  h += '</tr></thead><tbody>';
+
+  // Строки этажей
+  // Собираем все этажи для выбранных секций
+  const allFloors = new Set();
+  sections.forEach(s => {
+    const below = parseInt(s['Этажи ниже 0.000']) || 0;
+    const above = parseInt(s['Этажи выше 0.000']) || 0;
+    for (let f = above; f >= 1; f--) allFloors.add(f);
+    for (let f = -1; f >= -below; f--) allFloors.add(f);
+  });
+
+  const floorsAbove = [...allFloors].filter(f => f > 0).sort((a,b) => b-a);
+  const floorsBelow = [...allFloors].filter(f => f < 0).sort((a,b) => b-a);
+
+  // Блок "Выше 0.000"
+  if (floorsAbove.length) {
+    h += `<tr><td class="rh group-hdr" colspan="${1 + sections.reduce((acc,s) => acc + (worksFloor.filter(w => isWorkApplicable(w,s['Секция'],null)).length||1), 0)}">Работы выше 0.000</td></tr>`;
+    floorsAbove.forEach(fl => {
+      if (FILTER_FLOOR && String(fl) !== FILTER_FLOOR) return;
+      h += '<tr>';
+      h += `<td class="rh"><div class="rh-inner"><div class="rh-num">${fl}</div><div class="rh-lbl">эт.</div></div></td>`;
+      sections.forEach(s => {
+        const applicableWorks = worksFloor.filter(w => isWorkApplicable(w, s['Секция'], fl));
+        const allWorksForSec  = worksFloor.filter(w => isWorkApplicable(w, s['Секция'], null));
+        if (!allWorksForSec.length) {
+          h += '<td class="cell na"></td>';
+          return;
+        }
+        allWorksForSec.forEach(w => {
+          const applicable = isWorkApplicable(w, s['Секция'], fl);
+          if (!applicable) {
+            h += '<td class="cell na"></td>';
+            return;
+          }
+          const pct = getPct(s['Секция'], fl, w['Вид работ']);
+          h += cellHtml(s['Секция'], fl, w['Вид работ'], pct);
+        });
+      });
+      h += '</tr>';
+    });
+  }
+
+  // Блок "Ниже 0.000"
+  if (floorsBelow.length) {
+    h += `<tr><td class="rh group-hdr" colspan="${1 + sections.reduce((acc,s) => acc + (worksFloor.filter(w => isWorkApplicable(w,s['Секция'],null)).length||1), 0)}">Работы ниже 0.000</td></tr>`;
+    floorsBelow.forEach(fl => {
+      if (FILTER_FLOOR && String(fl) !== FILTER_FLOOR) return;
+      h += '<tr>';
+      h += `<td class="rh"><div class="rh-inner"><div class="rh-num">${fl}</div><div class="rh-lbl">эт.</div></div></td>`;
+      sections.forEach(s => {
+        const allWorksForSec = worksFloor.filter(w => isWorkApplicable(w, s['Секция'], null));
+        if (!allWorksForSec.length) {
+          h += '<td class="cell na"></td>';
+          return;
+        }
+        allWorksForSec.forEach(w => {
+          const applicable = isWorkApplicable(w, s['Секция'], fl);
+          if (!applicable) {
+            h += '<td class="cell na"></td>';
+            return;
+          }
+          const pct = getPct(s['Секция'], fl, w['Вид работр']);
+          h += cellHtml(s['Секция'], fl, w['Вид работ'], pct);
+        });
+      });
+      h += '</tr>';
+    });
+  }
+
+  // Блок "Работы на секцию"
+  if (worksSec.length) {
+    const colspan = 1 + sections.reduce((acc,s) => acc + (worksFloor.filter(w => isWorkApplicable(w,s['Секция'],null)).length||1), 0);
+    h += `<tr><td class="rh group-hdr" colspan="${colspan}">Работа на секцию</td></tr>`;
+    worksSec.forEach(w => {
+      h += '<tr>';
+      h += `<td class="rh"><div class="rh-inner" style="padding:0 4px;"><div class="rh-num" style="font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:50px;" title="${esc(w['Вид работ'])}">${esc(w['Вид работ'])}</div></div></td>`;
+      sections.forEach(s => {
+        const allWorksForSec = worksFloor.filter(ws => isWorkApplicable(ws, s['Секция'], null));
+        const colspan2 = allWorksForSec.length || 1;
+        const applicable = isWorkApplicable(w, s['Секция'], null);
+        if (!applicable) {
+          h += `<td class="cell na" colspan="${colspan2}"></td>`;
+          return;
+        }
+        const pct = getPct(s['Секция'], '', w['Вид работ']);
+        h += cellHtml(s['Секция'], '', w['Вид работ'], pct, colspan2);
+      });
+      h += '</tr>';
+    });
+  }
+
+  h += '</tbody>';
+  board.innerHTML = h;
+}
+
+function renderByWork(board) {
+  const sections = CONFIG.sections.filter(s =>
+    FILTER_SEC.size === 0 || FILTER_SEC.has(String(s['Секция']))
+  );
+  const works = CONFIG.works;
+
+  let h = '<thead><tr>';
+  h += '<th class="corner"><div class="corner-lbl">Сек/Эт</div></th>';
+  works.forEach(w => {
+    h += `<th class="h-work">${esc(w['Вид работ'])}</th>`;
+  });
+  h += '</tr></thead><tbody>';
+
+  sections.forEach(s => {
+    const below = parseInt(s['Этажи ниже 0.000']) || 0;
+    const above = parseInt(s['Этажи выше 0.000']) || 0;
+
+    h += `<tr><td class="rh group-hdr" colspan="${works.length + 1}">Секция ${s['Секция']}</td></tr>`;
+
+    // Этажи выше
+    for (let fl = above; fl >= 1; fl--) {
+      if (FILTER_FLOOR && String(fl) !== FILTER_FLOOR) continue;
+      h += '<tr>';
+      h += `<td class="rh"><div class="rh-inner"><div class="rh-num">${fl}</div><div class="rh-lbl">эт.</div></div></td>`;
+      works.forEach(w => {
+        if (w['Единица приемки'] !== 'Этаж секция') {
+          h += '<td class="cell na"></td>';
+          return;
+        }
+        const applicable = isWorkApplicable(w, s['Секция'], fl);
+        if (!applicable) { h += '<td class="cell na"></td>'; return; }
+        const pct = getPct(s['Секция'], fl, w['Вид работ']);
+        h += cellHtml(s['Секция'], fl, w['Вид работ'], pct);
+      });
+      h += '</tr>';
+    }
+
+    // Этажи ниже
+    for (let fl = -1; fl >= -below; fl--) {
+      if (FILTER_FLOOR && String(fl) !== FILTER_FLOOR) continue;
+      h += '<tr>';
+      h += `<td class="rh"><div class="rh-inner"><div class="rh-num">${fl}</div><div class="rh-lbl">эт.</div></div></td>`;
+      works.forEach(w => {
+        if (w['Единица приемки'] !== 'Этаж секция') {
+          h += '<td class="cell na"></td>';
+          return;
+        }
+        const applicable = isWorkApplicable(w, s['Секция'], fl);
+        if (!applicable) { h += '<td class="cell na"></td>'; return; }
+        const pct = getPct(s['Секция'], fl, w['Вид работ']);
+        h += cellHtml(s['Секция'], fl, w['Вид работ'], pct);
+      });
+      h += '</tr>';
+    }
+
+    // Работы на секцию
+    const secWorks = works.filter(w => w['Единица приемки'] === 'Секция');
+    if (secWorks.length) {
+      h += '<tr>';
+      h += `<td class="rh"><div class="rh-inner"><div class="rh-lbl" style="font-size:8px;">на сек.</div></div></td>`;
+      works.forEach(w => {
+        if (w['Единица приемки'] !== 'Секция') { h += '<td class="cell na"></td>'; return; }
+        const applicable = isWorkApplicable(w, s['Секция'], null);
+        if (!applicable) { h += '<td class="cell na"></td>'; return; }
+        const pct = getPct(s['Секция'], '', w['Вид работ']);
+        h += cellHtml(s['Секция'], '', w['Вид работ'], pct);
+      });
+      h += '</tr>';
+    }
+  });
+
+  h += '</tbody>';
+  board.innerHTML = h;
+}
+
+function cellHtml(sec, floor, work, pct, colspan) {
+  const { bg, text } = pctColor(pct);
+  const key = makeKey(sec, floor, work);
+  const cs = colspan ? ` colspan="${colspan}"` : '';
+  return `<td class="cell" style="background:${bg}" data-sec="${esc(String(sec))}" data-floor="${esc(String(floor))}" data-work="${esc(String(work))}" onclick="openModal('${esc(String(sec))}','${esc(String(floor))}','${esc(String(work))}')"${cs}>
+    <div class="ci"><div class="c-pct" style="color:${text}">${pct > 0 ? pct + '%' : ''}</div></div>
+    <div class="c-bar"><div class="c-bar-fill" style="width:${pct}%;background:${text}"></div></div>
+  </td>`;
+}
+
+// ── WORK APPLICABILITY ────────────────────────────────────────────
+function isWorkApplicable(work, section, floor) {
+  const secRule = String(work['Наличие на секции'] || '').trim();
+  if (secRule && secRule.toLowerCase() !== 'все') {
+    const allowedSecs = secRule.split(',').map(s => s.trim());
+    if (!allowedSecs.includes(String(section))) return false;
+  }
+  if (floor === null) return true;
+  const floorRule = String(work['Наличие на этаже'] || '').trim();
+  if (!floorRule) return true;
+  if (floorRule.toLowerCase() === 'все') return true;
+  const allowedFloors = floorRule.split(',').map(f => parseInt(f.trim())).filter(f => !isNaN(f));
+  return allowedFloors.includes(floor);
+}
+
+// ── PROGRESS ─────────────────────────────────────────────────────
+function renderProgress() {
+  const wrap = document.getElementById('progWrap');
+  const worksFloor = CONFIG.works.filter(w => w['Единица приемки'] === 'Этаж секция');
+  let html = '';
+  worksFloor.forEach(w => {
+    let total = 0, done = 0;
+    CONFIG.sections.forEach(s => {
+      const below = parseInt(s['Этажи ниже 0.000']) || 0;
+      const above = parseInt(s['Этажи выше 0.000']) || 0;
+      for (let f = -below; f <= above; f++) {
+        if (f === 0) continue;
+        if (!isWorkApplicable(w, s['Секция'], f)) continue;
+        total++;
+        if (getPct(s['Секция'], f, w['Вид работ']) === 100) done++;
+      }
+    });
+    const pct = total ? Math.round(done / total * 100) : 0;
+    html += `<div class="prog-item">
+      <div class="prog-lbl">${esc(w['Вид работ'])}</div>
+      <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+      <div class="prog-pct">${pct}%</div>
+    </div>`;
+  });
+  wrap.innerHTML = html;
+}
+
+// ── STATUSBAR ─────────────────────────────────────────────────────
+function renderSB() {
+  let total = 0, done = 0, inProg = 0, partial = 0;
+  Object.values(DATA).forEach(d => {
+    total++;
+    if (d.pct === 100) done++;
+    else if (d.pct > 50) partial++;
+    else if (d.pct > 0) inProg++;
+  });
+  document.getElementById('sbTotal').textContent = total;
+  document.getElementById('sbDone').textContent = done;
+  document.getElementById('sbInProg').textContent = inProg;
+  document.getElementById('sbPartial').textContent = partial;
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────
+function openModal(sec, floor, work) {
+  CUR = { sec, floor, work, key: makeKey(sec, floor, work) };
+  const pct = DATA[CUR.key]?.pct || 0;
+
+  document.getElementById('moTitle').textContent = work;
+  const floorTxt = floor ? ` · Этаж ${floor}` : '';
+  document.getElementById('moSub').textContent = `Секция ${sec}${floorTxt}`;
+
+  document.getElementById('pctSl').value = pct;
+  document.getElementById('pctBig').textContent = pct + '%';
+
+  // История
+  const hist = HISTORY[CUR.key] || [];
+  const hb = document.getElementById('histBody');
+  if (!hist.length) {
+    hb.innerHTML = '<div class="hist-empty">Изменений ещё не было</div>';
+  } else {
+    hb.innerHTML = hist.slice(0, 5).map(h =>
+      `<div class="hist-row"><span class="hist-who">${esc(h.who)}</span> — ${h.pctWas}% → ${h.pctNow}% <span style="color:var(--ink3);font-size:10px;">${esc(h.date)}</span></div>`
+    ).join('');
+  }
+
+  document.getElementById('overlay').classList.add('on');
+}
+
+function closeModal(e) {
+  if (e && e.target !== e.currentTarget) return;
+  document.getElementById('overlay').classList.remove('on');
+  CUR = null;
+}
+
+function updPct(v) {
+  document.getElementById('pctBig').textContent = v + '%';
+}
+
+function setPct(v) {
+  document.getElementById('pctSl').value = v;
+  document.getElementById('pctBig').textContent = v + '%';
+}
+
+// ── SAVE ──────────────────────────────────────────────────────────
+async function saveCell() {
+  if (!CUR) return;
+  if (!userName) {
+    toast('Введите ваше имя вверху', 'err');
+    document.getElementById('nameInp').focus();
+    return;
+  }
+
+  const pctNew = parseInt(document.getElementById('pctSl').value);
+  const pctOld = DATA[CUR.key]?.pct || 0;
+
+  const btn = document.getElementById('saveBtn');
+  btn.textContent = 'Сохранение…';
+  btn.disabled = true;
+
+  try {
+    const body = {
+      action: 'update',
+      section: CUR.sec,
+      floor: CUR.floor,
+      work: CUR.work,
+      pct: pctNew,
+      who: userName
+    };
+
+    const r = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(body)
+    });
+    const j = await r.json();
+    if (j.error) throw new Error(j.error);
+
+    // Обновляем локально
+    DATA[CUR.key] = { pct: pctNew, updatedAt: j.updatedAt || '' };
+
+    // Пишем историю локально
+    if (!HISTORY[CUR.key]) HISTORY[CUR.key] = [];
+    const now = new Date();
+    HISTORY[CUR.key].unshift({
+      who: userName,
+      pctWas: pctOld,
+      pctNow: pctNew,
+      date: now.toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+    });
+
+    closeModal();
+    render();
+    toast('Сохранено ✓', 'ok');
+  } catch(e) {
+    toast('Ошибка: ' + e.message, 'err');
+  } finally {
+    btn.textContent = 'Сохранить';
+    btn.disabled = false;
+  }
+}
+
+// ── HELPERS ──────────────────────────────────────────────────────
+function setSt(st, txt) {
+  const d = document.getElementById('sdot');
+  const t = document.getElementById('stxt');
+  d.className = 'sync-dot ' + st;
+  t.className = 'sync-txt ' + st;
+  t.textContent = txt;
+}
+function showLoader(txt) {
+  document.getElementById('loader').classList.add('on');
+  document.getElementById('loaderTxt').textContent = txt;
+}
+function hideLoader() {
+  document.getElementById('loader').classList.remove('on');
+}
+function toast(msg, tp, dur) {
+  const w = document.getElementById('toasts');
+  const el = document.createElement('div');
+  el.className = 'toast ' + (tp || 'inf');
+  el.textContent = msg;
+  w.appendChild(el);
+  setTimeout(() => el.remove(), dur || 2800);
+}
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+</script>
+</body>
+</html>
