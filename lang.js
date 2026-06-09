@@ -17,8 +17,11 @@ const LANG = {
     // Фильтры
     sectionLbl:     'Секция:',
     floorLbl:       'Этаж:',
+    workLbl:        'Вид работ:',
     allSections:    'Все',
     allFloors:      'Все этажи',
+    allWorks:       'Все работы',
+    onlySecWorks:   'Работы на секцию',
 
     // Шахматка — заголовки
     sectionPrefix:  'Секция',
@@ -69,8 +72,11 @@ const LANG = {
     // Filteri
     sectionLbl:     'Sekcija:',
     floorLbl:       'Sprat:',
+    workLbl:        'Vrsta radova:',
     allSections:    'Sve',
     allFloors:      'Svi spratovi',
+    allWorks:       'Svi radovi',
+    onlySecWorks:   'Radovi na sekciji',
 
     // Šahmatka — naslovi
     sectionPrefix:  'Sekcija',
@@ -121,8 +127,11 @@ const LANG = {
     // Filters
     sectionLbl:     'Section:',
     floorLbl:       'Floor:',
+    workLbl:        'Work type:',
     allSections:    'All',
     allFloors:      'All floors',
+    allWorks:       'All works',
+    onlySecWorks:   'Section works',
 
     // Grid — headers
     sectionPrefix:  'Section',

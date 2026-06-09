@@ -12,8 +12,6 @@
   --acc:#2563eb;--r:6px;
   --mono:'SF Mono','Fira Mono',monospace;
   --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-  --c0:#d1d5db;--c1:#fb923c;--c2:#facc15;--c3:#4ade80;
-  --c0t:#6b7280;--c1t:#7c2d12;--c2t:#713f12;--c3t:#14532d;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:var(--sans);background:var(--bg);color:var(--ink);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
@@ -42,14 +40,14 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);height:100vh;
 .fl{font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.07em;white-space:nowrap;}
 .fsel{padding:4px 8px;border-radius:var(--r);border:1px solid var(--brd2);background:var(--bg3);color:var(--ink2);font-size:11px;font-family:var(--sans);outline:none;cursor:pointer;}
 .fsel:focus{border-color:var(--acc);}
-.legend{display:flex;align-items:center;gap:14px;padding:5px 16px;background:var(--bg2);border-bottom:1px solid var(--brd);flex-shrink:0;}
-.leg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--ink2);}
-.leg-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
+.legend{display:flex;align-items:center;gap:6px;padding:5px 16px;background:var(--bg2);border-bottom:1px solid var(--brd);flex-shrink:0;}
+.leg-gradient{width:140px;height:10px;border-radius:5px;flex-shrink:0;}
+.leg-txt{font-size:10px;color:var(--ink3);}
 .prog-wrap{display:flex;gap:12px;flex-wrap:wrap;padding:5px 16px;background:var(--bg2);border-bottom:1px solid var(--brd);flex-shrink:0;}
 .prog-item{display:flex;align-items:center;gap:6px;}
 .prog-lbl{font-size:10px;color:var(--ink2);white-space:nowrap;}
 .prog-bar{width:72px;height:5px;background:var(--bg);border-radius:3px;overflow:hidden;}
-.prog-fill{height:100%;background:#4ade80;border-radius:3px;transition:width .3s;}
+.prog-fill{height:100%;border-radius:3px;transition:width .3s;}
 .prog-pct{font-family:var(--mono);font-size:10px;color:var(--ink2);min-width:28px;}
 .board-wrap{flex:1;overflow:auto;position:relative;}
 .board-wrap::-webkit-scrollbar{width:5px;height:5px;}
@@ -79,7 +77,7 @@ td.cell:hover{filter:brightness(.88);}
 td.cell.na{background:#e9eaec !important;cursor:default;pointer-events:none;}
 td.gap-col{background:var(--bg3);width:10px;min-width:10px;border-right:2px solid var(--brd2);border-bottom:1px solid var(--brd);cursor:default;}
 .ci{display:flex;flex-direction:column;align-items:center;justify-content:center;height:44px;padding:2px 4px;gap:0;}
-.c-date{font-size:9px;font-weight:500;line-height:1.1;opacity:.75;}
+.c-date{font-size:9px;font-weight:500;line-height:1.1;}
 .c-pct{font-family:var(--mono);font-size:14px;font-weight:800;line-height:1.1;}
 .c-dev{font-size:9px;font-weight:700;line-height:1.1;}
 .c-bar{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(0,0,0,.08);}
@@ -88,7 +86,6 @@ td.gap-col{background:var(--bg3);width:10px;min-width:10px;border-right:2px soli
 .si{display:flex;align-items:center;gap:4px;padding:0 10px;border-right:1px solid var(--brd);height:100%;}
 .si:first-child{padding-left:0;}
 .sn{font-family:var(--mono);font-size:12px;font-weight:700;}
-.sn.g{color:#16a34a;}.sn.o{color:#ea580c;}.sn.y{color:#ca8a04;}
 .hint{margin-left:auto;font-size:10px;color:var(--ink3);}
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:200;align-items:center;justify-content:center;}
 .overlay.on{display:flex;}
@@ -151,14 +148,17 @@ td.gap-col{background:var(--bg3);width:10px;min-width:10px;border-right:2px soli
   <div class="chips" id="secChips"></div>
   <div class="sep"></div>
   <span class="fl" id="ui-floorLbl"></span>
-  <select class="fsel" id="floorSel" onchange="render()"></select>
+  <select class="fsel" id="floorSel" onchange="onFloorChange()"></select>
+  <div class="sep"></div>
+  <span class="fl" id="ui-workLbl"></span>
+  <select class="fsel" id="workSel" onchange="render()"></select>
 </div>
 
 <div class="legend">
-  <div class="leg"><div class="leg-dot" style="background:var(--c0)"></div>0%</div>
-  <div class="leg"><div class="leg-dot" style="background:var(--c1)"></div>1–50%</div>
-  <div class="leg"><div class="leg-dot" style="background:var(--c2)"></div>51–99%</div>
-  <div class="leg"><div class="leg-dot" style="background:var(--c3)"></div>100%</div>
+  <div class="leg-gradient" id="legGradient"></div>
+  <span class="leg-txt">0%</span>
+  <span class="leg-txt" style="margin-left:4px;">→</span>
+  <span class="leg-txt" style="margin-left:4px;">100%</span>
 </div>
 
 <div class="prog-wrap" id="progWrap"></div>
@@ -171,9 +171,9 @@ td.gap-col{background:var(--bg3);width:10px;min-width:10px;border-right:2px soli
 
 <div class="stb">
   <div class="si"><span class="sn" id="sbTotal">0</span>&nbsp;<span id="ui-total"></span></div>
-  <div class="si"><span class="sn g" id="sbDone">0</span>&nbsp;<span id="ui-done"></span></div>
-  <div class="si"><span class="sn o" id="sbInProg">0</span>&nbsp;<span id="ui-inProg"></span></div>
-  <div class="si"><span class="sn y" id="sbPartial">0</span>&nbsp;<span id="ui-partial"></span></div>
+  <div class="si"><span class="sn" id="sbDone" style="color:#16a34a">0</span>&nbsp;<span id="ui-done"></span></div>
+  <div class="si"><span class="sn" id="sbInProg" style="color:#ea580c">0</span>&nbsp;<span id="ui-inProg"></span></div>
+  <div class="si"><span class="sn" id="sbPartial" style="color:#ca8a04">0</span>&nbsp;<span id="ui-partial"></span></div>
   <div class="hint" id="ui-hint"></div>
 </div>
 
@@ -213,14 +213,34 @@ td.gap-col{background:var(--bg3);width:10px;min-width:10px;border-right:2px soli
 
 <div class="toasts" id="toasts"></div>
 
-<!-- Словарь загружается первым, до основного кода -->
 <script src="lang.js"></script>
 <script>
 const API = 'https://script.google.com/macros/s/AKfycbzEXg-pV4xOZmZ0uEmlcrJwbf3L9yCxkHkS9G_Tvm8omk6d3q24iyClcKFWcZ7-FjfXVw/exec';
 
+// ── ЦВЕТ: плавный градиент HSL 0→100% ────────────────────────────
+// 0% = серый (hsl 0,0%,82%), 1-100% = красный→жёлтый→зелёный
+// Полупрозрачность 0.55 — мягкий, не кричащий цвет
+function pctColor(pct) {
+  if (pct === 0) return { bg: 'rgba(200,205,215,0.55)', text: '#6b7280' };
+  // HSL: hue от 0 (красный) до 120 (зелёный)
+  const hue = Math.round(pct * 1.2); // 0→0, 100→120
+  const sat  = 65;
+  const lig  = 52;
+  return {
+    bg:   `hsla(${hue},${sat}%,${lig}%,0.55)`,
+    text: `hsl(${hue},${Math.round(sat*0.9)}%,${Math.round(lig*0.45)}%)`
+  };
+}
+
+// Обновляем градиент в легенде
+function renderLegend() {
+  const el = document.getElementById('legGradient');
+  el.style.background = 'linear-gradient(to right, hsla(0,65%,52%,0.55), hsla(60,65%,52%,0.55), hsla(120,65%,52%,0.55))';
+}
+
 // ── ЯЗЫК ─────────────────────────────────────────────────────────
 let CURRENT_LANG = 'ru';
-function t(key){ return (LANG[CURRENT_LANG] && LANG[CURRENT_LANG][key]) ? LANG[CURRENT_LANG][key] : key; }
+function t(key){ return (LANG[CURRENT_LANG]&&LANG[CURRENT_LANG][key]) ? LANG[CURRENT_LANG][key] : key; }
 
 function setLang(lang){
   CURRENT_LANG = lang;
@@ -238,6 +258,7 @@ function applyLang(){
   document.getElementById('mode-work').textContent     = t('byWork');
   document.getElementById('ui-sectionLbl').textContent = t('sectionLbl');
   document.getElementById('ui-floorLbl').textContent   = t('floorLbl');
+  document.getElementById('ui-workLbl').textContent    = t('workLbl');
   document.getElementById('ui-pctLabel').textContent   = t('pctLabel');
   document.getElementById('ui-cancel').textContent     = t('cancel');
   document.getElementById('saveBtn').textContent       = t('save');
@@ -250,6 +271,7 @@ function applyLang(){
   document.getElementById('ui-hint').textContent       = t('hint');
   document.title = t('title');
   rebuildFloorFilter();
+  rebuildWorkFilter();
 }
 
 // ── ДАННЫЕ ───────────────────────────────────────────────────────
@@ -259,6 +281,7 @@ let HISTORY= {};
 let MODE   = 'section';
 let FILTER_SEC   = new Set();
 let FILTER_FLOOR = '';
+let FILTER_WORK  = '';   // '' = все, '__sec__' = только работы на секцию
 let CUR    = null;
 let userName = '';
 
@@ -268,16 +291,15 @@ window.onload = async () => {
   userName = localStorage.getItem('shk_name') || '';
   if(userName) document.getElementById('nameInp').value = userName;
   ['ru','sr','en'].forEach(l => document.getElementById('lang-'+l).classList.toggle('on', l===CURRENT_LANG));
+  renderLegend();
   applyLang();
   await loadAll();
 };
-
 function saveName(v){ userName=v.trim(); localStorage.setItem('shk_name',userName); }
 
 // ── LOAD ─────────────────────────────────────────────────────────
 async function loadAll(){
-  setSt('spin', t('loading'));
-  showLoader(t('loadingSheets'));
+  setSt('spin',t('loading')); showLoader(t('loadingSheets'));
   try {
     const [cfgRes, dataRes] = await Promise.all([
       fetch(API+'?action=config&t='+Date.now()),
@@ -293,9 +315,9 @@ async function loadAll(){
       const k = makeKey(r['Секция'], r['Этаж'], r['Вид работ']);
       DATA[k] = {
         pct:      parseFloat(r['% выполнения'])||0,
-        updatedAt:r['Обновлено']  ||'',
-        planDate: r['Дата план']  ||'',
-        factDate: r['Дата факт']  ||''
+        updatedAt:r['Обновлено'] ||'',
+        planDate: r['Дата план'] ||'',
+        factDate: r['Дата факт'] ||''
       };
     });
     buildFilters();
@@ -303,7 +325,7 @@ async function loadAll(){
     setSt('ok', t('loaded')+' · '+new Date().toLocaleTimeString('ru'));
     toast(t('loaded'),'ok');
   } catch(e) {
-    setSt('err', e.message);
+    setSt('err',e.message);
     toast('Ошибка: '+e.message,'err');
     document.getElementById('emptyState').style.display='flex';
     document.getElementById('board').style.display='none';
@@ -313,12 +335,14 @@ async function loadAll(){
 
 // ── FILTERS ──────────────────────────────────────────────────────
 function buildFilters(){
+  // Секции
   const el = document.getElementById('secChips');
   el.innerHTML = `<span class="chip on" onclick="setSec(this,'')">${t('allSections')}</span>`;
   CONFIG.sections.forEach(s => {
     el.innerHTML += `<span class="chip" onclick="setSec(this,'${s['Секция']}')">${t('sectionPrefix')} ${s['Секция']}</span>`;
   });
   rebuildFloorFilter();
+  rebuildWorkFilter();
 }
 
 function rebuildFloorFilter(){
@@ -328,8 +352,8 @@ function rebuildFloorFilter(){
   fl.innerHTML = `<option value="">${t('allFloors')}</option>`;
   const floors = new Set();
   CONFIG.sections.forEach(s => {
-    const above = parseInt(s['Этажи выше 0.000'])||0;
-    const below = parseInt(s['Этажи ниже 0.000'])||0;
+    const above=parseInt(s['Этажи выше 0.000'])||0;
+    const below=parseInt(s['Этажи ниже 0.000'])||0;
     for(let f=above;f>=1;f--)   floors.add(f);
     for(let f=-1;f>=-below;f--) floors.add(f);
   });
@@ -337,6 +361,20 @@ function rebuildFloorFilter(){
     fl.innerHTML += `<option value="${f}">${f} ${t('floorShort')}</option>`;
   });
   if(prev) fl.value = prev;
+}
+
+function rebuildWorkFilter(){
+  const ws = document.getElementById('workSel');
+  if(!ws) return;
+  const prev = ws.value;
+  ws.innerHTML = `<option value="">${t('allWorks')}</option>`;
+  // Опция "только работы на секцию"
+  ws.innerHTML += `<option value="__sec__">${t('onlySecWorks')}</option>`;
+  // Все виды работ по этажам
+  CONFIG.works.filter(w=>w['Единица приемки']==='Этаж секция').forEach(w => {
+    ws.innerHTML += `<option value="${esc(w['Вид работ'])}">${esc(w['Вид работ'])}</option>`;
+  });
+  if(prev) ws.value = prev;
 }
 
 function setSec(el,v){
@@ -357,6 +395,16 @@ function setSec(el,v){
   render();
 }
 
+// При смене этажа — автоматически сбрасываем фильтр работ если стоял __sec__
+function onFloorChange(){
+  FILTER_FLOOR = document.getElementById('floorSel').value;
+  if(FILTER_FLOOR !== '' && FILTER_WORK === '__sec__'){
+    FILTER_WORK = '';
+    document.getElementById('workSel').value = '';
+  }
+  render();
+}
+
 function setMode(m){
   MODE=m;
   document.getElementById('mode-sec').classList.toggle('on',m==='section');
@@ -369,17 +417,9 @@ function makeKey(sec,floor,work){ return [String(sec||''),String(floor||''),Stri
 function getPct(sec,floor,work){ return DATA[makeKey(sec,floor,work)]?.pct||0; }
 function getCell(sec,floor,work){ return DATA[makeKey(sec,floor,work)]||{pct:0,updatedAt:'',planDate:'',factDate:''}; }
 
-// ── COLOR ─────────────────────────────────────────────────────────
-function pctColor(pct){
-  if(pct===0)  return {bg:'var(--c0)',text:'var(--c0t)'};
-  if(pct<=50)  return {bg:'var(--c1)',text:'var(--c1t)'};
-  if(pct<100)  return {bg:'var(--c2)',text:'var(--c2t)'};
-  return              {bg:'var(--c3)',text:'var(--c3t)'};
-}
-
 // ── DATE HELPERS ──────────────────────────────────────────────────
 function parseDate(s){
-  if(!s) return null; s=String(s).trim();
+  if(!s)return null; s=String(s).trim();
   if(/^\d{2}\.\d{2}\.\d{4}$/.test(s)){const[d,m,y]=s.split('.');return new Date(+y,+m-1,+d);}
   if(/^\d{4}-\d{2}-\d{2}$/.test(s)){const[y,m,d]=s.split('-');return new Date(+y,+m-1,+d);}
   return null;
@@ -412,10 +452,10 @@ function cellHtml(sec,floor,work,colspan){
   const dateHtml=dateStr?`<div class="c-date" style="color:${text}">${hasFactDate?'✓ ':''}${dateStr}</div>`:'';
   const pctHtml=d.pct>0
     ?`<div class="c-pct" style="color:${text}">${d.pct}%</div>`
-    :`<div class="c-pct" style="color:${text};opacity:.35">—</div>`;
+    :`<div class="c-pct" style="color:${text};opacity:.4">—</div>`;
   return `<td class="cell" style="background:${bg}" onclick="openModal('${esc(String(sec))}','${esc(String(floor))}','${esc(String(work))}')"${cs}>
     <div class="ci">${dateHtml}${pctHtml}${devHtml}</div>
-    <div class="c-bar"><div class="c-bar-fill" style="width:${d.pct}%;background:${text}40"></div></div>
+    <div class="c-bar"><div class="c-bar-fill" style="width:${d.pct}%;background:${text}"></div></div>
   </td>`;
 }
 
@@ -433,23 +473,42 @@ function isWorkApplicable(work,section,floor){
 
 // ── RENDER ────────────────────────────────────────────────────────
 function render(){
-  FILTER_FLOOR=document.getElementById('floorSel').value;
+  FILTER_FLOOR = document.getElementById('floorSel').value;
+  FILTER_WORK  = document.getElementById('workSel').value;
   const board=document.getElementById('board');
   const empty=document.getElementById('emptyState');
   if(!CONFIG.sections.length){board.style.display='none';empty.style.display='flex';return;}
-  board.style.display='table';empty.style.display='none';
+  board.style.display='table'; empty.style.display='none';
   MODE==='section' ? renderBySection(board) : renderByWork(board);
   renderProgress();
   renderSB();
 }
 
 function getSections(){ return CONFIG.sections.filter(s=>FILTER_SEC.size===0||FILTER_SEC.has(String(s['Секция']))); }
-function worksFloor(){ return CONFIG.works.filter(w=>w['Единица приемки']==='Этаж секция'); }
-function worksSec(){   return CONFIG.works.filter(w=>w['Единица приемки']==='Секция'); }
-function secColCount(s){ return Math.max(worksFloor().filter(w=>isWorkApplicable(w,s['Секция'],null)).length,1); }
+
+// Фильтрованные работы с учётом FILTER_WORK
+function worksFloorFiltered(){
+  let wf = CONFIG.works.filter(w=>w['Единица приемки']==='Этаж секция');
+  if(FILTER_WORK && FILTER_WORK!=='__sec__') wf=wf.filter(w=>w['Вид работ']===FILTER_WORK);
+  return wf;
+}
+function worksSecFiltered(){
+  // Если выбран конкретный этаж или конкретная работа по этажу — не показываем блок секций
+  if(FILTER_FLOOR!=='') return [];
+  if(FILTER_WORK!==''&&FILTER_WORK!=='__sec__') return [];
+  let ws = CONFIG.works.filter(w=>w['Единица приемки']==='Секция');
+  return ws;
+}
+
+function secColCount(s){
+  return Math.max(worksFloorFiltered().filter(w=>isWorkApplicable(w,s['Секция'],null)).length,1);
+}
 
 function renderBySection(board){
-  const sections=getSections(), wf=worksFloor(), ws=worksSec();
+  const sections=getSections();
+  const wf=worksFloorFiltered();
+  const ws=worksSecFiltered();
+
   let h='<thead><tr>';
   h+=`<th class="corner" rowspan="2"><div class="corner-lbl">${t('floorShort')}</div></th>`;
   sections.forEach((s,si)=>{
@@ -475,90 +534,117 @@ function renderBySection(board){
   const totCols=sections.reduce((a,s,si)=>a+secColCount(s)+(si<sections.length-1?1:0),0)+1;
   const grpRow=lbl=>`<tr><td class="rh group-hdr" colspan="${totCols}">${lbl}</td></tr>`;
 
-  const floorsA=[...allA].sort((a,b)=>b-a);
-  const floorsB=[...allB].sort((a,b)=>a-b);
+  // Показываем этажи только если нет фильтра "__sec__"
+  if(FILTER_WORK!=='__sec__'){
+    const floorsA=[...allA].sort((a,b)=>b-a);
+    const floorsB=[...allB].sort((a,b)=>a-b);
 
-  if(floorsA.length){
-    h+=grpRow(t('worksAbove'));
-    floorsA.forEach(fl=>{
-      if(FILTER_FLOOR&&String(fl)!==FILTER_FLOOR) return;
-      h+=`<tr><td class="rh"><div class="rh-inner"><div class="rh-num">${fl}</div><div class="rh-lbl">${t('floorShort')}</div></div></td>`;
-      sections.forEach((s,si)=>{
-        wf.filter(w=>isWorkApplicable(w,s['Секция'],null)).forEach(w=>{
-          h+=!hasFloor(s,fl)||!isWorkApplicable(w,s['Секция'],fl)?'<td class="cell na"></td>':cellHtml(s['Секция'],fl,w['Вид работ']);
+    if(floorsA.length){
+      h+=grpRow(t('worksAbove'));
+      floorsA.forEach(fl=>{
+        if(FILTER_FLOOR&&String(fl)!==FILTER_FLOOR) return;
+        h+=`<tr><td class="rh"><div class="rh-inner"><div class="rh-num">${fl}</div><div class="rh-lbl">${t('floorShort')}</div></div></td>`;
+        sections.forEach((s,si)=>{
+          wf.filter(w=>isWorkApplicable(w,s['Секция'],null)).forEach(w=>{
+            h+=!hasFloor(s,fl)||!isWorkApplicable(w,s['Секция'],fl)
+              ?'<td class="cell na"></td>'
+              :cellHtml(s['Секция'],fl,w['Вид работ']);
+          });
+          if(si<sections.length-1) h+='<td class="gap-col"></td>';
         });
-        if(si<sections.length-1) h+='<td class="gap-col"></td>';
+        h+='</tr>';
       });
-      h+='</tr>';
-    });
+    }
+
+    if(floorsB.length){
+      h+=grpRow(t('worksBelow'));
+      floorsB.forEach(fl=>{
+        const fn=-fl;
+        if(FILTER_FLOOR&&String(fn)!==FILTER_FLOOR) return;
+        h+=`<tr><td class="rh"><div class="rh-inner"><div class="rh-num">${fn}</div><div class="rh-lbl">${t('floorShort')}</div></div></td>`;
+        sections.forEach((s,si)=>{
+          wf.filter(w=>isWorkApplicable(w,s['Секция'],null)).forEach(w=>{
+            h+=!hasFloor(s,fn)||!isWorkApplicable(w,s['Секция'],fn)
+              ?'<td class="cell na"></td>'
+              :cellHtml(s['Секция'],fn,w['Вид работ']);
+          });
+          if(si<sections.length-1) h+='<td class="gap-col"></td>';
+        });
+        h+='</tr>';
+      });
+    }
   }
 
-  if(floorsB.length){
-    h+=grpRow(t('worksBelow'));
-    floorsB.forEach(fl=>{
-      const fn=-fl;
-      if(FILTER_FLOOR&&String(fn)!==FILTER_FLOOR) return;
-      h+=`<tr><td class="rh"><div class="rh-inner"><div class="rh-num">${fn}</div><div class="rh-lbl">${t('floorShort')}</div></div></td>`;
-      sections.forEach((s,si)=>{
-        wf.filter(w=>isWorkApplicable(w,s['Секция'],null)).forEach(w=>{
-          h+=!hasFloor(s,fn)||!isWorkApplicable(w,s['Секция'],fn)?'<td class="cell na"></td>':cellHtml(s['Секция'],fn,w['Вид работ']);
-        });
-        if(si<sections.length-1) h+='<td class="gap-col"></td>';
-      });
-      h+='</tr>';
-    });
-  }
-
+  // Работы на секцию — скрыты если выбран этаж или конкретная работа
   if(ws.length){
     h+=grpRow(t('workOnSec'));
     ws.forEach(w=>{
       h+=`<tr><td class="rh" style="font-size:9px;padding:2px 4px;"><div style="max-width:48px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(w['Вид работ'])}">${esc(w['Вид работ'])}</div></td>`;
       sections.forEach((s,si)=>{
         const cols=secColCount(s);
-        h+=isWorkApplicable(w,s['Секция'],null)?cellHtml(s['Секция'],'',w['Вид работ'],cols>1?cols:undefined):`<td class="cell na" colspan="${cols}"></td>`;
+        h+=isWorkApplicable(w,s['Секция'],null)
+          ?cellHtml(s['Секция'],'',w['Вид работ'],cols>1?cols:undefined)
+          :`<td class="cell na" colspan="${cols}"></td>`;
         if(si<sections.length-1) h+='<td class="gap-col"></td>';
       });
       h+='</tr>';
     });
   }
+
   h+='</tbody>';
   board.innerHTML=h;
 }
 
 function renderByWork(board){
-  const sections=getSections(), works=CONFIG.works;
+  const sections=getSections();
+  const works=FILTER_WORK==='__sec__'
+    ? CONFIG.works.filter(w=>w['Единица приемки']==='Секция')
+    : FILTER_WORK
+      ? CONFIG.works.filter(w=>w['Вид работ']===FILTER_WORK)
+      : CONFIG.works;
+
   let h=`<thead><tr><th class="corner"><div class="corner-lbl">${t('floorShort')}</div></th>`;
   works.forEach(w=>{h+=`<th class="h-work">${esc(w['Вид работ'])}</th>`;});
   h+='</tr></thead><tbody>';
+
   sections.forEach(s=>{
     const above=parseInt(s['Этажи выше 0.000'])||0, below=parseInt(s['Этажи ниже 0.000'])||0;
     h+=`<tr><td class="rh group-hdr" colspan="${works.length+1}">${t('sectionPrefix')} ${s['Секция']}</td></tr>`;
-    for(let fl=above;fl>=1;fl--){
-      if(FILTER_FLOOR&&String(fl)!==FILTER_FLOOR) continue;
-      h+=`<tr><td class="rh"><div class="rh-inner"><div class="rh-num">${fl}</div><div class="rh-lbl">${t('floorShort')}</div></div></td>`;
-      works.forEach(w=>{ h+=w['Единица приемки']!=='Этаж секция'||!isWorkApplicable(w,s['Секция'],fl)?'<td class="cell na"></td>':cellHtml(s['Секция'],fl,w['Вид работ']); });
-      h+='</tr>';
+
+    if(FILTER_WORK!=='__sec__'){
+      for(let fl=above;fl>=1;fl--){
+        if(FILTER_FLOOR&&String(fl)!==FILTER_FLOOR) continue;
+        h+=`<tr><td class="rh"><div class="rh-inner"><div class="rh-num">${fl}</div><div class="rh-lbl">${t('floorShort')}</div></div></td>`;
+        works.forEach(w=>{ h+=w['Единица приемки']!=='Этаж секция'||!isWorkApplicable(w,s['Секция'],fl)?'<td class="cell na"></td>':cellHtml(s['Секция'],fl,w['Вид работ']); });
+        h+='</tr>';
+      }
+      for(let fl=-1;fl>=-below;fl--){
+        if(FILTER_FLOOR&&String(fl)!==FILTER_FLOOR) continue;
+        h+=`<tr><td class="rh"><div class="rh-inner"><div class="rh-num">${fl}</div><div class="rh-lbl">${t('floorShort')}</div></div></td>`;
+        works.forEach(w=>{ h+=w['Единица приемки']!=='Этаж секция'||!isWorkApplicable(w,s['Секция'],fl)?'<td class="cell na"></td>':cellHtml(s['Секция'],fl,w['Вид работ']); });
+        h+='</tr>';
+      }
     }
-    for(let fl=-1;fl>=-below;fl--){
-      if(FILTER_FLOOR&&String(fl)!==FILTER_FLOOR) continue;
-      h+=`<tr><td class="rh"><div class="rh-inner"><div class="rh-num">${fl}</div><div class="rh-lbl">${t('floorShort')}</div></div></td>`;
-      works.forEach(w=>{ h+=w['Единица приемки']!=='Этаж секция'||!isWorkApplicable(w,s['Секция'],fl)?'<td class="cell na"></td>':cellHtml(s['Секция'],fl,w['Вид работ']); });
-      h+='</tr>';
+
+    // Работы на секцию — не показываем если выбран конкретный этаж
+    if(FILTER_FLOOR===''&&FILTER_WORK!==''){
+      // только если явно выбрано __sec__ или пустой фильтр
     }
-    const ws2=works.filter(w=>w['Единица приемки']==='Секция');
+    const ws2=FILTER_FLOOR==='' ? works.filter(w=>w['Единица приемки']==='Секция') : [];
     if(ws2.length){
       h+=`<tr><td class="rh" style="font-size:9px;padding:0 3px;text-align:center;color:var(--ink3);">${t('onSec')}</td>`;
-      works.forEach(w=>{ h+=w['Единица приемки']!=='Секция'||!isWorkApplicable(w,s['Секция'],null)?'<td class="cell na"></td>':cellHtml(s['Секция'],'',w['Вид работ']); });
+      ws2.forEach(w=>{ h+=isWorkApplicable(w,s['Секция'],null)?cellHtml(s['Секция'],'',w['Вид работ']):'<td class="cell na"></td>'; });
       h+='</tr>';
     }
   });
+
   h+='</tbody>';
   board.innerHTML=h;
 }
 
 function renderProgress(){
   let html='';
-  worksFloor().forEach(w=>{
+  CONFIG.works.filter(w=>w['Единица приемки']==='Этаж секция').forEach(w=>{
     let total=0,done=0;
     CONFIG.sections.forEach(s=>{
       const a=parseInt(s['Этажи выше 0.000'])||0, b=parseInt(s['Этажи ниже 0.000'])||0;
@@ -566,7 +652,12 @@ function renderProgress(){
       for(let f=-1;f>=-b;f--){ if(!isWorkApplicable(w,s['Секция'],f))continue;total++;if(getPct(s['Секция'],f,w['Вид работ'])===100)done++; }
     });
     const pct=total?Math.round(done/total*100):0;
-    html+=`<div class="prog-item"><div class="prog-lbl">${esc(w['Вид работ'])}</div><div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div><div class="prog-pct">${pct}%</div></div>`;
+    const {bg}=pctColor(pct);
+    html+=`<div class="prog-item">
+      <div class="prog-lbl">${esc(w['Вид работ'])}</div>
+      <div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:${bg}"></div></div>
+      <div class="prog-pct">${pct}%</div>
+    </div>`;
   });
   document.getElementById('progWrap').innerHTML=html;
 }
@@ -598,11 +689,9 @@ function openModal(sec,floor,work){
     :hist.slice(0,5).map(h=>`<div class="hist-row"><span class="hist-who">${esc(h.who||'—')}</span> ${h.pctWas}%→${h.pctNow}% <span style="color:var(--ink3);font-size:10px;">${esc(h.date)}</span></div>`).join('');
   document.getElementById('overlay').classList.add('on');
 }
-
 function closeModal(e){
   if(e&&e.target!==e.currentTarget)return;
-  document.getElementById('overlay').classList.remove('on');
-  CUR=null;
+  document.getElementById('overlay').classList.remove('on'); CUR=null;
 }
 function updPct(v){document.getElementById('pctBig').textContent=v+'%';}
 function setPct(v){document.getElementById('pctSl').value=v;document.getElementById('pctBig').textContent=v+'%';}
