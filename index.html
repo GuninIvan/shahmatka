@@ -118,6 +118,28 @@ td.gap-col{background:var(--bg3);width:10px;min-width:10px;border-right:2px soli
 .toast.ok{background:#f0fdf4;border:1px solid #bbf7d0;color:#15803d;}
 .toast.err{background:#fef2f2;border:1px solid #fecaca;color:#dc2626;}
 .toast.inf{background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;}
+
+/* ── Адаптив под телефон ─────────────────────────────────────── */
+@media (max-width: 720px){
+  body{height:auto;min-height:100vh;overflow:auto;}
+  .topbar{height:auto;flex-wrap:wrap;gap:6px 8px;padding:8px 10px;}
+  .topbar .sep{display:none;}
+  .tb-right{margin-left:0;width:100%;flex-wrap:wrap;gap:6px;}
+  #userArea{order:-1;width:100%;}
+  .name-inp{flex:1;width:auto;min-width:0;}
+  .logo{flex:1;}
+  .filterbar{gap:6px;padding:8px 10px;}
+  .filterbar .sep{display:none;}
+  .filterbar .fl{display:none;}            /* подписи Секция:/Этаж: скрыты — компактнее */
+  #secChips{width:100%;}
+  .fsel{flex:1;min-width:90px;}
+  .legend{flex-wrap:wrap;}
+  .prog-wrap{gap:8px 12px;}
+  .board-wrap{flex:none;max-height:none;overflow:auto;}
+  .stb{flex-wrap:wrap;height:auto;padding:6px 10px;gap:2px 0;}
+  .stb .hint{display:none;}
+  .modal{width:94vw;}
+}
 </style>
 </head>
 <body>
@@ -229,6 +251,24 @@ function barColor(pct) {
 // Метки секции/этажа по языку
 const SEC_LBL = { ru:'с', sr:'s', en:'s' };
 const FL_LBL  = { ru:'э', sr:'sp', en:'fl' };
+
+// Перевод названия работы ТОЛЬКО для отображения.
+// В базу и в ключ всегда уходит русское w['Вид работ'].
+// Колонки в «Списке работ»: «Вид работ SR», «Вид работ EN».
+function workLabel(w){
+  if(CURRENT_LANG==='sr' && String(w['Вид работ SR']||'').trim()) return String(w['Вид работ SR']).trim();
+  if(CURRENT_LANG==='en' && String(w['Вид работ EN']||'').trim()) return String(w['Вид работ EN']).trim();
+  return w['Вид работ'];
+}
+// Перевод названия группы (колонки «Группа работ SR/EN»)
+function groupLabel(g){
+  const w = CONFIG.works.find(x=>String(x['Группа работ']||'').trim()===g);
+  if(w){
+    if(CURRENT_LANG==='sr' && String(w['Группа работ SR']||'').trim()) return String(w['Группа работ SR']).trim();
+    if(CURRENT_LANG==='en' && String(w['Группа работ EN']||'').trim()) return String(w['Группа работ EN']).trim();
+  }
+  return g;
+}
 
 function renderLegend() {
   document.getElementById('legGradient').style.background =
@@ -450,7 +490,7 @@ function rebuildGroupFilter(){
   const seen = new Set();
   CONFIG.works.forEach(w => {
     const g = String(w['Группа работ']||'').trim();
-    if(g && !seen.has(g)){ seen.add(g); gs.innerHTML += `<option value="${esc(g)}">${esc(g)}</option>`; }
+    if(g && !seen.has(g)){ seen.add(g); gs.innerHTML += `<option value="${esc(g)}">${esc(groupLabel(g))}</option>`; }
   });
   if(prev) gs.value = prev;
 }
@@ -498,7 +538,7 @@ function rebuildWorkFilter(){
   ws.innerHTML = `<option value="">${t('allWorks')}</option>`;
   ws.innerHTML += `<option value="__sec__">${t('onlySecWorks')}</option>`;
   CONFIG.works.filter(w=>w['Единица приемки']==='Этаж секция'&&inGroup(w)).forEach(w => {
-    ws.innerHTML += `<option value="${esc(w['Вид работ'])}">${esc(w['Вид работ'])}</option>`;
+    ws.innerHTML += `<option value="${esc(w['Вид работ'])}">${esc(workLabel(w))}</option>`;
   });
   if(prev) ws.value = prev;
 }
@@ -660,7 +700,7 @@ function renderBySection(board){
   sections.forEach(s=>{
     const aw=wf.filter(w=>isWorkApplicable(w,s['Секция'],null));
     if(!aw.length) h+='<th class="h-work">—</th>';
-    else aw.forEach(w=>{h+=`<th class="h-work">${esc(w['Вид работ'])}</th>`;});
+    else aw.forEach(w=>{h+=`<th class="h-work">${esc(workLabel(w))}</th>`;});
   });
   h+='</tr></thead><tbody>';
 
@@ -718,7 +758,7 @@ function renderBySection(board){
   if(ws.length){
     h+=grpRow(t('workOnSec'));
     ws.forEach(w=>{
-      h+=`<tr><td class="rh" style="font-size:9px;padding:2px 4px;"><div style="max-width:48px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(w['Вид работ'])}">${esc(w['Вид работ'])}</div></td>`;
+      h+=`<tr><td class="rh" style="font-size:9px;padding:2px 4px;"><div style="max-width:48px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(workLabel(w))}">${esc(workLabel(w))}</div></td>`;
       sections.forEach((s,si)=>{
         const cols=secColCount(s);
         h+=isWorkApplicable(w,s['Секция'],null)
@@ -743,7 +783,7 @@ function renderByWork(board){
       : CONFIG.works).filter(inGroup);
 
   let h=`<thead><tr><th class="corner"><div class="corner-lbl">${t('floorShort')}</div></th>`;
-  works.forEach(w=>{h+=`<th class="h-work">${esc(w['Вид работ'])}</th>`;});
+  works.forEach(w=>{h+=`<th class="h-work">${esc(workLabel(w))}</th>`;});
   h+='</tr></thead><tbody>';
 
   sections.forEach(s=>{
@@ -788,7 +828,7 @@ function renderProgress(){
     });
     const pct=total?Math.round(done/total*100):0;
     html+=`<div class="prog-item">
-      <div class="prog-lbl">${esc(w['Вид работ'])}</div>
+      <div class="prog-lbl">${esc(workLabel(w))}</div>
       <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
       <div class="prog-pct">${pct}%</div>
     </div>`;
@@ -823,7 +863,8 @@ function renderSB(){
 function openModal(sec,floor,work){
   CUR={sec,floor,work,key:makeKey(sec,floor,work)};
   const d=getCell(sec,floor,work);
-  document.getElementById('moTitle').textContent=work;
+  const wObj=CONFIG.works.find(x=>x['Вид работ']===work);
+  document.getElementById('moTitle').textContent = wObj ? workLabel(wObj) : work;
   const flTxt=floor?` · ${t('floorShort')} ${floor}`:'';
   const sub=[`${t('sectionPrefix')} ${sec}${flTxt}`];
   if(d.factDate) sub.push(`${t('factPrefix')} ${d.factDate}`);
