@@ -14,6 +14,14 @@ const LANG = {
     bySection:      'По секции',
     byWork:         'По виду работ',
 
+    // Вход / роли
+    passHolder:     'Пароль…',
+    login:          'Войти',
+    logout:         'Выйти',
+    readOnly:       'Только просмотр',
+    wrongPass:      'Неверный пароль',
+    noSecAccess:    'Нет доступа к этой секции',
+
     // Фильтры
     sectionLbl:     'Секция:',
     floorLbl:       'Этаж:',
@@ -35,8 +43,6 @@ const LANG = {
     pctLabel:       'Процент выполнения',
     save:           'Сохранить',
     cancel:         'Отмена',
-    histTitle:      'История',
-    noHistory:      'Изменений ещё не было',
     factPrefix:     '✓ Факт:',
     planPrefix:     'План:',
 
@@ -50,7 +56,6 @@ const LANG = {
     total:          'всего',
     done:           '100%',
     inProg:         'в работе',
-    partial:        'частично',
     hint:           'Нажмите на ячейку для обновления',
 
     // Лоадер
@@ -68,6 +73,14 @@ const LANG = {
     yourName:       'Vaše ime…',
     bySection:      'Po sekciji',
     byWork:         'Po vrsti radova',
+
+    // Prijava / uloge
+    passHolder:     'Lozinka…',
+    login:          'Prijava',
+    logout:         'Odjava',
+    readOnly:       'Samo pregled',
+    wrongPass:      'Pogrešna lozinka',
+    noSecAccess:    'Nema pristupa ovoj sekciji',
 
     // Filteri
     sectionLbl:     'Sekcija:',
@@ -90,8 +103,6 @@ const LANG = {
     pctLabel:       'Procenat izvršenja',
     save:           'Sačuvaj',
     cancel:         'Otkaži',
-    histTitle:      'Istorija',
-    noHistory:      'Još nema izmjena',
     factPrefix:     '✓ Fakt:',
     planPrefix:     'Plan:',
 
@@ -105,7 +116,6 @@ const LANG = {
     total:          'ukupno',
     done:           '100%',
     inProg:         'u radu',
-    partial:        'djelimično',
     hint:           'Kliknite na ćeliju za ažuriranje',
 
     // Loader
@@ -123,6 +133,14 @@ const LANG = {
     yourName:       'Your name…',
     bySection:      'By section',
     byWork:         'By work type',
+
+    // Login / roles
+    passHolder:     'Password…',
+    login:          'Log in',
+    logout:         'Log out',
+    readOnly:       'View only',
+    wrongPass:      'Wrong password',
+    noSecAccess:    'No access to this section',
 
     // Filters
     sectionLbl:     'Section:',
@@ -145,8 +163,6 @@ const LANG = {
     pctLabel:       'Completion %',
     save:           'Save',
     cancel:         'Cancel',
-    histTitle:      'History',
-    noHistory:      'No changes yet',
     factPrefix:     '✓ Fact:',
     planPrefix:     'Plan:',
 
@@ -160,7 +176,6 @@ const LANG = {
     total:          'total',
     done:           '100%',
     inProg:         'in progress',
-    partial:        'partial',
     hint:           'Click a cell to update',
 
     // Loader
