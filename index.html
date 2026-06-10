@@ -75,7 +75,11 @@ td.rh{position:sticky;left:0;z-index:10;background:var(--bg2);min-width:52px;bor
 .rh-num{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--ink);}
 .rh-lbl{font-size:8px;color:var(--ink3);text-transform:uppercase;}
 td.rh.group-hdr{background:var(--bg3);text-align:left;padding:4px 8px;font-size:10px;font-weight:700;color:var(--ink2);text-transform:uppercase;letter-spacing:.06em;border-top:2px solid var(--brd2);}
-td.cell{border-right:1px solid var(--brd);border-bottom:1px solid var(--brd);width:82px;min-width:82px;height:44px;padding:0;vertical-align:middle;cursor:pointer;position:relative;transition:filter .1s;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);}
+td.cell{border-right:1px solid var(--brd);border-bottom:1px solid var(--brd);width:82px;min-width:82px;height:44px;padding:2px;vertical-align:middle;cursor:pointer;position:relative;transition:filter .1s;}
+td.cell .ci{background:#fcfcfd;border:1px solid #d4d8e0;border-radius:5px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.6);overflow:hidden;}
+/* Завершённая работа (100%): весь текст серый, как метки этажа/секции */
+td.cell.done .c-pct{color:#9ca3af;}
+td.cell.done .c-date{color:#9ca3af;}
 td.cell:hover{filter:brightness(.88);}
 td.cell.na{background:#e9eaec !important;cursor:default;pointer-events:none;}
 td.gap-col{background:var(--bg3);width:10px;min-width:10px;border-right:2px solid var(--brd2);border-bottom:1px solid var(--brd);cursor:default;}
@@ -85,6 +89,10 @@ td.gap-col{background:var(--bg3);width:10px;min-width:10px;border-right:2px soli
 .c-pct{font-family:var(--mono);font-size:11px;font-weight:400;line-height:1;color:#374151;white-space:nowrap;}
 .c-pct.empty{color:#d1d5db;}
 .c-date{font-size:9px;line-height:1;color:#9ca3af;font-family:var(--mono);white-space:nowrap;}
+.c-topright{display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
+.c-dev{font-size:9px;line-height:1;font-family:var(--mono);font-weight:600;white-space:nowrap;}
+.c-dev.late{color:#dc2626;}
+.c-dev.ahead{color:#16a34a;}
 .c-sec{font-size:9px;line-height:1;color:#9ca3af;white-space:nowrap;}
 .c-fl{font-size:9px;line-height:1;color:#9ca3af;font-family:var(--mono);white-space:nowrap;}
 .c-bar-track{position:absolute;bottom:0;left:0;right:0;height:3px;background:#f3f4f6;}
@@ -258,6 +266,7 @@ function barColor(pct) {
 // Метки секции/этажа по языку
 const SEC_LBL = { ru:'с', sr:'s', en:'s' };
 const FL_LBL  = { ru:'э', sr:'sp', en:'fl' };
+const DAY_LBL = { ru:'д', sr:'d', en:'d' };   // суффикс дней в отставании
 
 // Перевод названия работы ТОЛЬКО для отображения.
 // В базу и в ключ всегда уходит русское w['Вид работ'].
@@ -459,7 +468,8 @@ async function loadAll(){
         pct:      parseFloat(r['% выполнения'])||0,
         updatedAt:r['Обновлено'] ||'',
         planDate: normalizeDate(r['Дата план']),
-        factDate: normalizeDate(r['Дата факт'])
+        factDate: normalizeDate(r['Дата факт']),
+        dev:      parseDev(r['Отставание'])
       };
     });
     buildFilters();
@@ -578,7 +588,13 @@ function setMode(m){
 // ── KEY / DATA ────────────────────────────────────────────────────
 function makeKey(sec,floor,work){ return [String(sec||''),String(floor||''),String(work||'')].join('|||'); }
 function getPct(sec,floor,work){ return DATA[makeKey(sec,floor,work)]?.pct||0; }
-function getCell(sec,floor,work){ return DATA[makeKey(sec,floor,work)]||{pct:0,updatedAt:'',planDate:'',factDate:''}; }
+function getCell(sec,floor,work){ return DATA[makeKey(sec,floor,work)]||{pct:0,updatedAt:'',planDate:'',factDate:'',dev:null}; }
+// «Отставание» из таблицы → число или null. Пустое/нечисловое = null.
+function parseDev(v){
+  if(v===''||v===null||v===undefined) return null;
+  const n=parseFloat(String(v).replace(',','.'));
+  return isNaN(n)?null:n;
+}
 
 // ── DATE HELPERS ──────────────────────────────────────────────────
 function normalizeDate(s){
@@ -623,6 +639,7 @@ function cellHtml(sec,floor,work,colspan){
   const cs=colspan?` colspan="${colspan}"` :'';
   const bar=barColor(d.pct);
   const isEmpty=d.pct===0;
+  const isDone=d.pct===100;
 
   const hasFactDate=!!d.factDate&&String(d.factDate).trim()!=='';
   const dateStr=fmtShort(hasFactDate?d.factDate:d.planDate);
@@ -630,10 +647,24 @@ function cellHtml(sec,floor,work,colspan){
 
   const sl=SEC_LBL[CURRENT_LANG]||'с';
   const fl=FL_LBL[CURRENT_LANG]||'э';
+  const dy=DAY_LBL[CURRENT_LANG]||'д';
+
+  // Отставание: показываем только на незавершённых непустых ячейках.
+  // >0 — отстаёт (красный, со знаком +), <0 — опережение (зелёный, модуль)
+  let devHtml='';
+  if(!isEmpty && !isDone && d.dev!==null && d.dev!==0){
+    devHtml = d.dev>0
+      ? `<div class="c-dev late">+${d.dev}${dy}</div>`
+      : `<div class="c-dev ahead">${Math.abs(d.dev)}${dy}</div>`;
+  }
+
+  const trEl = (dateLabel&&!isEmpty) || devHtml
+    ? `<div class="c-topright">${dateLabel&&!isEmpty?`<div class="c-date">${esc(dateLabel)}</div>`:''}${devHtml}</div>`
+    : '';
 
   const topRow=`<div class="ci-top">
     <div class="c-pct${isEmpty?' empty':''}">${isEmpty?'—':d.pct+'%'}</div>
-    ${dateLabel&&!isEmpty?`<div class="c-date">${esc(dateLabel)}</div>`:''}
+    ${trEl}
   </div>`;
 
   const botRow=!isEmpty?`<div class="ci-bot">
@@ -643,9 +674,8 @@ function cellHtml(sec,floor,work,colspan){
 
   const barHtml=`<div class="c-bar-track"></div>${bar?`<div class="c-bar-fill" style="width:${d.pct}%;background:${bar}"></div>`:''}`;
 
-  return `<td class="cell" data-sec="${esc(String(sec))}" data-floor="${esc(String(floor))}" data-work="${esc(String(work))}"${cs}>
-    <div class="ci">${topRow}${botRow}</div>
-    ${barHtml}
+  return `<td class="cell${isDone?' done':''}" data-sec="${esc(String(sec))}" data-floor="${esc(String(floor))}" data-work="${esc(String(work))}"${cs}>
+    <div class="ci">${topRow}${botRow}${barHtml}</div>
   </td>`;
 }
 
@@ -904,7 +934,7 @@ function saveCell(){
   const pctNew=parseInt(document.getElementById('pctSl').value);
   const pctOld=DATA[CUR.key]?.pct||0;
   const savedCUR={...CUR};
-  if(!DATA[savedCUR.key])DATA[savedCUR.key]={pct:0,updatedAt:'',planDate:'',factDate:''};
+  if(!DATA[savedCUR.key])DATA[savedCUR.key]={pct:0,updatedAt:'',planDate:'',factDate:'',dev:null};
   DATA[savedCUR.key].pct=pctNew;
   closeModal(); render(); setSt('spin',t('saving'));
   const now=new Date();
