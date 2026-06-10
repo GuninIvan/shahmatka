@@ -121,7 +121,7 @@ td.gap-col{background:var(--bg3);width:10px;min-width:10px;border-right:2px soli
 
 /* ── Адаптив под телефон ─────────────────────────────────────── */
 @media (max-width: 720px){
-  body{height:auto;min-height:100vh;overflow:auto;}
+  body{height:auto;min-height:100vh;overflow:visible;}  /* скроллится вся страница */
   .topbar{height:auto;flex-wrap:wrap;gap:6px 8px;padding:8px 10px;}
   .topbar .sep{display:none;}
   .tb-right{margin-left:0;width:100%;flex-wrap:wrap;gap:6px;}
@@ -135,10 +135,17 @@ td.gap-col{background:var(--bg3);width:10px;min-width:10px;border-right:2px soli
   .fsel{flex:1;min-width:90px;}
   .legend{flex-wrap:wrap;}
   .prog-wrap{gap:8px 12px;}
-  .board-wrap{flex:none;max-height:none;overflow:auto;}
+  /* Таблица не скроллится отдельно — горизонталь уходит в скролл всей
+     страницы, а thead (sticky top:0) прилипает к верху ЭКРАНА, когда
+     топбар и фильтры уже уехали вверх. */
+  .board-wrap{flex:none;max-height:none;overflow:visible;}
   .stb{flex-wrap:wrap;height:auto;padding:6px 10px;gap:2px 0;}
   .stb .hint{display:none;}
   .modal{width:94vw;}
+  /* Непрозрачный фон шапки — строки не просвечивают под ней при скролле */
+  th.h-section{background:#f7f8fa;}
+  th.h-work{background:#ffffff;}
+  th.corner{background:#ffffff;}
 }
 </style>
 </head>
