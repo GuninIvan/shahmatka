@@ -151,6 +151,9 @@ td.gap-col{background:var(--bg3);width:10px;min-width:10px;border-right:2px soli
   <span class="fl" id="ui-floorLbl"></span>
   <select class="fsel" id="floorSel" onchange="onFloorChange()"></select>
   <div class="sep"></div>
+  <span class="fl" id="ui-groupLbl"></span>
+  <select class="fsel" id="groupSel" onchange="onGroupChange()"></select>
+  <div class="sep"></div>
   <span class="fl" id="ui-workLbl"></span>
   <select class="fsel" id="workSel" onchange="onWorkChange()"></select>
 </div>
@@ -251,6 +254,7 @@ function applyLang(){
   document.getElementById('mode-work').textContent     = t('byWork');
   document.getElementById('ui-sectionLbl').textContent = t('sectionLbl');
   document.getElementById('ui-floorLbl').textContent   = t('floorLbl');
+  document.getElementById('ui-groupLbl').textContent   = t('groupLbl');
   document.getElementById('ui-workLbl').textContent    = t('workLbl');
   document.getElementById('ui-pctLabel').textContent   = t('pctLabel');
   document.getElementById('ui-cancel').textContent     = t('cancel');
@@ -263,6 +267,7 @@ function applyLang(){
   document.title = t('title');
   rebuildSecChips();        // чипы секций тоже перестраиваются при смене языка
   rebuildFloorFilter();
+  rebuildGroupFilter();
   rebuildWorkFilter();
   renderUserArea();
 }
@@ -274,6 +279,7 @@ let MODE   = 'section';
 let FILTER_SEC   = new Set();
 let FILTER_FLOOR = '';
 let FILTER_WORK  = '';   // '' = все, '__sec__' = только работы на секцию
+let FILTER_GROUP = '';   // '' = все группы работ
 let CUR    = null;
 let userName  = '';
 let USER      = null;    // {name, role, sections} после входа по паролю
@@ -347,14 +353,26 @@ function logout(){
   renderUserArea();
 }
 
-// Может ли текущий пользователь редактировать секцию
-function canEdit(sec){
+// Может ли пользователь редактировать данную работу на данной секции.
+// Ограничения по секциям и по видам работ ПЕРЕСЕКАЮТСЯ (логика И):
+// «Секции: 1» + «Вид работ: Монолит» = только монолит на секции 1.
+// Пустое поле = без ограничения.
+function canEdit(sec, work){
   if(OPEN_MODE) return true;
   if(!USER) return false;
   if(String(USER.role||'').trim().toLowerCase() === 'читатель') return false;
-  const s = String(USER.sections||'Все').trim().toLowerCase();
-  if(s === 'все' || s === 'sve' || s === 'all') return true;
-  return String(USER.sections).split(',').map(x=>x.trim()).includes(String(sec));
+
+  const inList = (raw, val) => {
+    const s = String(raw||'').trim();
+    if(s === '') return true;
+    const low = s.toLowerCase();
+    if(low === 'все' || low === 'sve' || low === 'all') return true;
+    return s.split(',').map(x=>x.trim()).includes(String(val).trim());
+  };
+
+  if(!inList(USER.sections, sec))  return false;
+  if(!inList(USER.works,    work)) return false;
+  return true;
 }
 
 function renderUserArea(){
@@ -414,7 +432,34 @@ async function loadAll(){
 function buildFilters(){
   rebuildSecChips();
   rebuildFloorFilter();
+  rebuildGroupFilter();
   rebuildWorkFilter();
+}
+
+// Принадлежит ли работа выбранной группе (пустой фильтр = все)
+function inGroup(w){
+  if(FILTER_GROUP==='') return true;
+  return String(w['Группа работ']||'').trim()===FILTER_GROUP;
+}
+
+function rebuildGroupFilter(){
+  const gs = document.getElementById('groupSel');
+  if(!gs) return;
+  const prev = gs.value;
+  gs.innerHTML = `<option value="">${t('allGroups')}</option>`;
+  const seen = new Set();
+  CONFIG.works.forEach(w => {
+    const g = String(w['Группа работ']||'').trim();
+    if(g && !seen.has(g)){ seen.add(g); gs.innerHTML += `<option value="${esc(g)}">${esc(g)}</option>`; }
+  });
+  if(prev) gs.value = prev;
+}
+
+function onGroupChange(){
+  FILTER_GROUP = document.getElementById('groupSel').value;
+  rebuildWorkFilter();   // список работ сужается до выбранной группы;
+                         // если выбранная работа не из этой группы — сбросится сама
+  render();
 }
 
 function rebuildSecChips(){
@@ -452,7 +497,7 @@ function rebuildWorkFilter(){
   const prev = ws.value;
   ws.innerHTML = `<option value="">${t('allWorks')}</option>`;
   ws.innerHTML += `<option value="__sec__">${t('onlySecWorks')}</option>`;
-  CONFIG.works.filter(w=>w['Единица приемки']==='Этаж секция').forEach(w => {
+  CONFIG.works.filter(w=>w['Единица приемки']==='Этаж секция'&&inGroup(w)).forEach(w => {
     ws.innerHTML += `<option value="${esc(w['Вид работ'])}">${esc(w['Вид работ'])}</option>`;
   });
   if(prev) ws.value = prev;
@@ -572,6 +617,7 @@ function isWorkApplicable(work,section,floor){
 // ── RENDER ────────────────────────────────────────────────────────
 function render(){
   FILTER_FLOOR = document.getElementById('floorSel').value;
+  FILTER_GROUP = document.getElementById('groupSel').value;
   FILTER_WORK  = document.getElementById('workSel').value;
   const board=document.getElementById('board');
   const empty=document.getElementById('emptyState');
@@ -585,14 +631,14 @@ function render(){
 function getSections(){ return CONFIG.sections.filter(s=>FILTER_SEC.size===0||FILTER_SEC.has(String(s['Секция']))); }
 
 function worksFloorFiltered(){
-  let wf = CONFIG.works.filter(w=>w['Единица приемки']==='Этаж секция');
+  let wf = CONFIG.works.filter(w=>w['Единица приемки']==='Этаж секция'&&inGroup(w));
   if(FILTER_WORK && FILTER_WORK!=='__sec__') wf=wf.filter(w=>w['Вид работ']===FILTER_WORK);
   return wf;
 }
 function worksSecFiltered(){
   if(FILTER_FLOOR!=='') return [];
   if(FILTER_WORK!==''&&FILTER_WORK!=='__sec__') return [];
-  return CONFIG.works.filter(w=>w['Единица приемки']==='Секция');
+  return CONFIG.works.filter(w=>w['Единица приемки']==='Секция'&&inGroup(w));
 }
 
 function secColCount(s){
@@ -690,11 +736,11 @@ function renderBySection(board){
 
 function renderByWork(board){
   const sections=getSections();
-  const works=FILTER_WORK==='__sec__'
+  const works=(FILTER_WORK==='__sec__'
     ? CONFIG.works.filter(w=>w['Единица приемки']==='Секция')
     : FILTER_WORK
       ? CONFIG.works.filter(w=>w['Вид работ']===FILTER_WORK)
-      : CONFIG.works;
+      : CONFIG.works).filter(inGroup);
 
   let h=`<thead><tr><th class="corner"><div class="corner-lbl">${t('floorShort')}</div></th>`;
   works.forEach(w=>{h+=`<th class="h-work">${esc(w['Вид работ'])}</th>`;});
@@ -733,7 +779,7 @@ function renderByWork(board){
 
 function renderProgress(){
   let html='';
-  CONFIG.works.filter(w=>w['Единица приемки']==='Этаж секция').forEach(w=>{
+  CONFIG.works.filter(w=>w['Единица приемки']==='Этаж секция'&&inGroup(w)).forEach(w=>{
     let total=0,done=0;
     CONFIG.sections.forEach(s=>{
       const a=parseInt(s['Этажи выше 0.000'])||0, b=parseInt(s['Этажи ниже 0.000'])||0;
@@ -787,7 +833,7 @@ function openModal(sec,floor,work){
   document.getElementById('pctBig').textContent=d.pct+'%';
 
   // Право редактирования: без пароля (или с ролью Читатель) — только просмотр
-  const editable=canEdit(sec);
+  const editable=canEdit(sec, work);
   document.getElementById('pctBlock').style.display = editable?'':'none';
   document.getElementById('saveBtn').style.display  = editable?'':'none';
   const ro=document.getElementById('roNote');
@@ -806,7 +852,7 @@ function setPct(v){document.getElementById('pctSl').value=v;document.getElementB
 // ── SAVE ─────────────────────────────────────────────────────────
 function saveCell(){
   if(!CUR)return;
-  if(!canEdit(CUR.sec)){ toast(t('readOnly'),'err'); return; }
+  if(!canEdit(CUR.sec, CUR.work)){ toast(t('readOnly'),'err'); return; }
   const pctNew=parseInt(document.getElementById('pctSl').value);
   const pctOld=DATA[CUR.key]?.pct||0;
   const savedCUR={...CUR};
@@ -838,6 +884,7 @@ function saveCell(){
     const msg = m==='no_access'      ? t('wrongPass')
               : m==='read_only'      ? t('readOnly')
               : m==='section_denied' ? t('noSecAccess')
+              : m==='work_denied'    ? t('noWorkAccess')
               : t('errorSave');
     setSt('err',msg); toast(msg,'err',4000);
   });

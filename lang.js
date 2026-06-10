@@ -21,13 +21,16 @@ const LANG = {
     readOnly:       'Только просмотр',
     wrongPass:      'Неверный пароль',
     noSecAccess:    'Нет доступа к этой секции',
+    noWorkAccess:   'Нет доступа к этому виду работ',
 
     // Фильтры
     sectionLbl:     'Секция:',
     floorLbl:       'Этаж:',
+    groupLbl:       'Группа:',
     workLbl:        'Вид работ:',
     allSections:    'Все',
     allFloors:      'Все этажи',
+    allGroups:      'Все группы',
     allWorks:       'Все работы',
     onlySecWorks:   'Работы на секцию',
 
@@ -81,13 +84,16 @@ const LANG = {
     readOnly:       'Samo pregled',
     wrongPass:      'Pogrešna lozinka',
     noSecAccess:    'Nema pristupa ovoj sekciji',
+    noWorkAccess:   'Nema pristupa ovoj vrsti radova',
 
     // Filteri
     sectionLbl:     'Sekcija:',
     floorLbl:       'Sprat:',
+    groupLbl:       'Grupa:',
     workLbl:        'Vrsta radova:',
     allSections:    'Sve',
     allFloors:      'Svi spratovi',
+    allGroups:      'Sve grupe',
     allWorks:       'Svi radovi',
     onlySecWorks:   'Radovi na sekciji',
 
@@ -141,13 +147,16 @@ const LANG = {
     readOnly:       'View only',
     wrongPass:      'Wrong password',
     noSecAccess:    'No access to this section',
+    noWorkAccess:   'No access to this work type',
 
     // Filters
     sectionLbl:     'Section:',
     floorLbl:       'Floor:',
+    groupLbl:       'Group:',
     workLbl:        'Work type:',
     allSections:    'All',
     allFloors:      'All floors',
+    allGroups:      'All groups',
     allWorks:       'All works',
     onlySecWorks:   'Section works',
 
