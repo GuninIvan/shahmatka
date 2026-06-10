@@ -324,8 +324,8 @@ async function loadAll(){
       DATA[k] = {
         pct:      parseFloat(r['% выполнения'])||0,
         updatedAt:r['Обновлено'] ||'',
-        planDate: r['Дата план'] ||'',
-        factDate: r['Дата факт'] ||''
+        planDate: normalizeDate(r['Дата план']),
+        factDate: normalizeDate(r['Дата факт'])
       };
     });
     buildFilters();
@@ -426,8 +426,33 @@ function getPct(sec,floor,work){ return DATA[makeKey(sec,floor,work)]?.pct||0; }
 function getCell(sec,floor,work){ return DATA[makeKey(sec,floor,work)]||{pct:0,updatedAt:'',planDate:'',factDate:''}; }
 
 // ── DATE HELPERS ──────────────────────────────────────────────────
+// Нормализует дату из любого формата в "dd.mm.yyyy" строку
+function normalizeDate(s){
+  if(!s||s==='') return '';
+  // Уже строка dd.mm.yyyy — ок
+  if(typeof s==='string'&&/^\d{2}\.\d{2}\.\d{4}/.test(s.trim())) return s.trim().slice(0,10);
+  // Уже строка yyyy-mm-dd — ок
+  if(typeof s==='string'&&/^\d{4}-\d{2}-\d{2}/.test(s.trim())){
+    const[y,m,d]=s.trim().slice(0,10).split('-');
+    return `${d}.${m}.${y}`;
+  }
+  // Excel serial number
+  const num=parseFloat(s);
+  if(!isNaN(num)&&num>40000&&num<60000){
+    const date=new Date(new Date(1899,11,30).getTime()+Math.floor(num)*86400000);
+    return String(date.getDate()).padStart(2,'0')+'.'+String(date.getMonth()+1).padStart(2,'0')+'.'+date.getFullYear();
+  }
+  return '';
+}
 function parseDate(s){
-  if(!s)return null; s=String(s).trim();
+  if(!s) return null;
+  // Excel serial number (например 46182 или 46182.627)
+  const num = parseFloat(s);
+  if(!isNaN(num) && num > 40000 && num < 60000){
+    const excelEpoch = new Date(1899, 11, 30);
+    return new Date(excelEpoch.getTime() + Math.floor(num) * 86400000);
+  }
+  s = String(s).trim();
   if(/^\d{2}\.\d{2}\.\d{4}$/.test(s)){const[d,m,y]=s.split('.');return new Date(+y,+m-1,+d);}
   if(/^\d{4}-\d{2}-\d{2}$/.test(s)){const[y,m,d]=s.split('-');return new Date(+y,+m-1,+d);}
   return null;
@@ -450,8 +475,10 @@ function cellHtml(sec,floor,work,colspan){
   const isEmpty=d.pct===0;
 
   // Дата: факт приоритет, иначе план
-  const hasFactDate=!!d.factDate;
-  const dateStr=fmtShort(d.factDate||d.planDate);
+  // Показываем всегда если есть, ✓ только если фактическая
+  const hasFactDate=!!d.factDate&&String(d.factDate).trim()!=='';
+  const hasPlanDate=!!d.planDate&&String(d.planDate).trim()!=='';
+  const dateStr=fmtShort(hasFactDate?d.factDate:d.planDate);
   const dateLabel=dateStr?(hasFactDate?'✓'+dateStr:dateStr):'';
 
   // Метки секции/этажа по текущему языку
