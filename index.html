@@ -733,12 +733,12 @@ function cellHtml(sec,floor,work,colspan){
   const fl=FL_LBL[CURRENT_LANG]||'э';
   const dy=DAY_LBL[CURRENT_LANG]||'д';
 
-  // Даты (только если запись есть в базе)
+  // Даты (только если запись есть в базе). Подписи словами: «Старт dd.mm» / «Финиш dd.mm»
   const hasFactDate=!!d.factDate&&String(d.factDate).trim()!=='';
   const endStr=fmtShort(hasFactDate?d.factDate:d.planDate);
-  const endLabel=(d.found&&SHOW.dend&&endStr)?(hasFactDate?'✓'+endStr:endStr):'';
+  const endLabel=(d.found&&SHOW.dend&&endStr)?(t('finishShort')+' '+(hasFactDate?'✓':'')+endStr):'';
   const startStr=fmtShort(d.startDate);
-  const startLabel=(d.found&&SHOW.dstart&&startStr)?('›'+startStr):'';
+  const startLabel=(d.found&&SHOW.dstart&&startStr)?(t('startShort')+' '+startStr):'';
 
   // Отставание: и на ненaчатых тоже, если старт просрочен (dev>0)
   let devHtml='';
@@ -755,8 +755,16 @@ function cellHtml(sec,floor,work,colspan){
     const sd=parseDate(d.startDate), ed=parseDate(d.planDate);
     const relevant = d.found && !isDone && sd && sd<=DEADLINE;
     if(relevant){
+      // Длительность считается ВКЛЮЧАЯ последний день:
+      // 09.06–24.06 = 16 рабочих дней; к 23.06 пройдено 15 → 94%.
+      // 100% — только если дата окончания <= выбранной даты.
+      const DAY=86400000;
       let target=100;
-      if(ed && ed>DEADLINE && ed>sd) target=Math.max(0,Math.min(100,Math.round((DEADLINE-sd)/(ed-sd)*100)));
+      if(ed && ed>sd){
+        const total=Math.round((ed-sd)/DAY)+1;          // дней всего, включительно
+        const done =Math.floor((DEADLINE-sd)/DAY)+1;    // дней к дате, включительно
+        if(done<total) target=Math.max(0,Math.min(99,Math.round(done/total*100)));
+      }
       targetHtml=`<div class="c-target">→${target}%</div>`;
     } else dim=true;
   }

@@ -53,6 +53,8 @@ const LANG = {
     worksBelow:     'Работы ниже 0.000',
     workOnSec:      'Работа на секцию',
     onSec:          'на сек.',
+    startShort:     'Старт',
+    finishShort:    'Финиш',
 
     // Модальное окно
     pctLabel:       'Процент выполнения',
@@ -128,6 +130,8 @@ const LANG = {
     worksBelow:     'Radovi ispod 0.000',
     workOnSec:      'Rad na sekciji',
     onSec:          'na sek.',
+    startShort:     'Start',
+    finishShort:    'Kraj',
 
     // Modalni prozor
     pctLabel:       'Procenat izvršenja',
@@ -203,6 +207,8 @@ const LANG = {
     worksBelow:     'Works below 0.000',
     workOnSec:      'Section works',
     onSec:          'on sec.',
+    startShort:     'Start',
+    finishShort:    'Finish',
 
     // Modal
     pctLabel:       'Completion %',
