@@ -13,6 +13,18 @@ const LANG = {
     yourName:       'Ваше имя…',
     bySection:      'По секции',
     byWork:         'По виду работ',
+    bySummary:      'Сводка',
+
+    // Панель «Что показывать» и режим «к дате»
+    showBtn:        'Вид',
+    showPct:        'Процент',
+    showStart:      'Дата начала',
+    showEnd:        'Дата окончания',
+    showDev:        'Отставание',
+    showSec:        'Секция',
+    showFloor:      'Этаж',
+    deadlineLbl:    'К дате:',
+    noSummary:      'Лист «Сводка» не найден в таблице',
 
     // Вход / роли
     passHolder:     'Пароль…',
@@ -76,6 +88,18 @@ const LANG = {
     yourName:       'Vaše ime…',
     bySection:      'Po sekciji',
     byWork:         'Po vrsti radova',
+    bySummary:      'Pregled',
+
+    // Panel „Šta prikazati" i režim „do datuma"
+    showBtn:        'Prikaz',
+    showPct:        'Procenat',
+    showStart:      'Datum početka',
+    showEnd:        'Datum završetka',
+    showDev:        'Kašnjenje',
+    showSec:        'Sekcija',
+    showFloor:      'Sprat',
+    deadlineLbl:    'Do datuma:',
+    noSummary:      'List „Сводка" nije pronađen u tabeli',
 
     // Prijava / uloge
     passHolder:     'Lozinka…',
@@ -139,6 +163,18 @@ const LANG = {
     yourName:       'Your name…',
     bySection:      'By section',
     byWork:         'By work type',
+    bySummary:      'Summary',
+
+    // "What to show" panel and "by date" mode
+    showBtn:        'View',
+    showPct:        'Percent',
+    showStart:      'Start date',
+    showEnd:        'End date',
+    showDev:        'Lag',
+    showSec:        'Section',
+    showFloor:      'Floor',
+    deadlineLbl:    'By date:',
+    noSummary:      'Sheet "Сводка" not found in the spreadsheet',
 
     // Login / roles
     passHolder:     'Password…',

@@ -93,6 +93,12 @@ td.gap-col{background:var(--bg3);width:10px;min-width:10px;border-right:2px soli
 .c-dev{font-size:9px;line-height:1;font-family:var(--mono);font-weight:600;white-space:nowrap;}
 .c-dev.late{color:#dc2626;}
 .c-dev.ahead{color:#16a34a;}
+.c-target{font-size:9px;line-height:1;font-family:var(--mono);font-weight:600;color:#2563eb;white-space:nowrap;}
+/* Затемнение нерелевантных работ в режиме «к дате» */
+td.cell.dim .ci{opacity:.35;filter:grayscale(.8);}
+/* Панель «Что показывать» */
+.vp-item{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--ink2);cursor:pointer;padding:3px 9px;border:1px solid var(--brd2);border-radius:14px;background:var(--bg3);user-select:none;}
+.vp-item input{accent-color:var(--acc);margin:0;width:13px;height:13px;}
 .c-sec{font-size:9px;line-height:1;color:#9ca3af;white-space:nowrap;}
 .c-fl{font-size:9px;line-height:1;color:#9ca3af;font-family:var(--mono);white-space:nowrap;}
 .c-bar-track{position:absolute;bottom:0;left:0;right:0;height:3px;background:#f3f4f6;}
@@ -171,6 +177,7 @@ td.gap-col{background:var(--bg3);width:10px;min-width:10px;border-right:2px soli
     <div class="chips">
       <span class="chip on" id="mode-sec" onclick="setMode('section')"></span>
       <span class="chip" id="mode-work" onclick="setMode('work')"></span>
+      <span class="chip" id="mode-sum" onclick="setMode('summary')"></span>
     </div>
     <div class="sep"></div>
     <div class="chips lang-chips">
@@ -193,7 +200,13 @@ td.gap-col{background:var(--bg3);width:10px;min-width:10px;border-right:2px soli
   <div class="sep"></div>
   <span class="fl" id="ui-workLbl"></span>
   <select class="fsel" id="workSel" onchange="onWorkChange()"></select>
+  <div class="sep"></div>
+  <span class="fl" id="ui-deadlineLbl"></span>
+  <input type="date" class="fsel" id="deadlineInp" onchange="render()">
+  <button class="btn" id="viewBtn" onclick="toggleViewPanel()">👁 <span id="ui-showBtn"></span></button>
 </div>
+
+<div class="filterbar" id="viewPanel" style="display:none;"></div>
 
 <div class="legend">
   <div class="leg-gradient" id="legGradient"></div>
@@ -255,12 +268,36 @@ td.gap-col{background:var(--bg3);width:10px;min-width:10px;border-right:2px soli
 const API = 'https://script.google.com/macros/s/AKfycbzEXg-pV4xOZmZ0uEmlcrJwbf3L9yCxkHkS9G_Tvm8omk6d3q24iyClcKFWcZ7-FjfXVw/exec';
 
 // ── ЦВЕТ полоски ─────────────────────────────────────────────────
+// Запасной вариант (нет данных об отставании): по проценту
 // 0% → серый трек, 1–99% → красный→жёлтый, 100% → зелёный
 function barColor(pct) {
   if (pct === 0)   return null;
   if (pct === 100) return '#2f9e44';
   const hue = Math.round((pct / 99) * 60);
   return `hsl(${hue},${pct < 50 ? 75 : 78}%,${pct < 50 ? 50 : 43}%)`;
+}
+
+// ── ЦВЕТ по отставанию ───────────────────────────────────────────
+// 1 день — уже жёлтый (hue 50), 30+ дней — красный (hue 0)
+function devHue(dev){
+  const x = Math.min(Math.max(dev,1),30);
+  return Math.round(50 * (1 - (x-1)/29));
+}
+// Цвет полоски: приоритет — отставание; нет данных — по проценту
+function cellBarColor(d){
+  if (d.pct === 100) return '#2f9e44';
+  if (d.dev !== null){
+    if (d.dev > 0) return `hsl(${devHue(d.dev)},80%,45%)`;
+    return '#2f9e44';                       // в графике / опережение
+  }
+  return barColor(d.pct);
+}
+// Заливка всей карточки. Не начали и отставания нет — не красим.
+function cellTint(d){
+  if (d.pct === 100 || d.dev === null) return '';
+  if (d.dev > 0)  return `hsl(${devHue(d.dev)},75%,93%)`;   // отстаёт
+  if (d.pct > 0)  return 'hsl(140,45%,94%)';                // идёт в графике
+  return '';                                                 // не начата, не отстаёт
 }
 
 // Метки секции/этажа по языку
@@ -308,6 +345,9 @@ function applyLang(){
   document.getElementById('ui-refresh').textContent    = t('refresh');
   document.getElementById('mode-sec').textContent      = t('bySection');
   document.getElementById('mode-work').textContent     = t('byWork');
+  document.getElementById('mode-sum').textContent      = t('bySummary');
+  document.getElementById('ui-deadlineLbl').textContent= t('deadlineLbl');
+  document.getElementById('ui-showBtn').textContent    = t('showBtn');
   document.getElementById('ui-sectionLbl').textContent = t('sectionLbl');
   document.getElementById('ui-floorLbl').textContent   = t('floorLbl');
   document.getElementById('ui-groupLbl').textContent   = t('groupLbl');
@@ -325,13 +365,19 @@ function applyLang(){
   rebuildFloorFilter();
   rebuildGroupFilter();
   rebuildWorkFilter();
+  buildViewPanel();
   renderUserArea();
 }
 
 // ── ДАННЫЕ / СОСТОЯНИЕ ───────────────────────────────────────────
 let CONFIG = { works:[], sections:[] };
 let DATA   = {};
+let SUMMARY= [];
 let MODE   = 'section';
+// «Что показывать» в ячейке (галочки), хранится в localStorage
+let SHOW = { pct:true, dstart:false, dend:true, dev:true, sec:true, fl:true };
+try{ const s=JSON.parse(localStorage.getItem('shk_show')||'null'); if(s) SHOW=Object.assign(SHOW,s);}catch(e){}
+let DEADLINE = null;   // режим «к дате»: Date или null
 let FILTER_SEC   = new Set();
 let FILTER_FLOOR = '';
 let FILTER_WORK  = '';   // '' = все, '__sec__' = только работы на секцию
@@ -451,14 +497,18 @@ function renderUserArea(){
 async function loadAll(){
   setSt('spin',t('loading')); showLoader(t('loadingSheets'));
   try {
-    const [cfgRes, dataRes] = await Promise.all([
+    const [cfgRes, dataRes, sumRes] = await Promise.all([
       fetch(API+'?action=config&t='+Date.now()),
-      fetch(API+'?action=data&t='+Date.now())
+      fetch(API+'?action=data&t='+Date.now()),
+      fetch(API+'?action=summary&t='+Date.now())
     ]);
     const cfg = await cfgRes.json();
     const dat = await dataRes.json();
+    let   sum = {rows:[]};
+    try{ sum = await sumRes.json(); }catch(e){}
     if(cfg.error) throw new Error(cfg.error);
     if(dat.error) throw new Error(dat.error);   // ошибка чтения базы больше не глотается
+    SUMMARY = (sum && !sum.error && sum.rows) ? sum.rows : [];
     CONFIG.works    = cfg.works    || [];
     CONFIG.sections = cfg.sections || [];
     DATA = {};
@@ -468,6 +518,7 @@ async function loadAll(){
         found:    true,
         pct:      parseFloat(r['% выполнения'])||0,
         updatedAt:r['Обновлено'] ||'',
+        startDate:normalizeDate(r['Дата начала']),
         planDate: normalizeDate(r['Дата план']),
         factDate: normalizeDate(r['Дата факт']),
         dev:      parseDev(r['Отставание'])
@@ -583,13 +634,42 @@ function setMode(m){
   MODE=m;
   document.getElementById('mode-sec').classList.toggle('on',m==='section');
   document.getElementById('mode-work').classList.toggle('on',m==='work');
+  document.getElementById('mode-sum').classList.toggle('on',m==='summary');
   render();
+}
+
+// ── Панель «Что показывать» ──────────────────────────────────────
+function toggleViewPanel(){
+  const p=document.getElementById('viewPanel');
+  p.style.display = p.style.display==='none' ? 'flex' : 'none';
+}
+function buildViewPanel(){
+  const p=document.getElementById('viewPanel');
+  if(!p) return;
+  const items=[
+    ['pct',   t('showPct')],
+    ['dstart',t('showStart')],
+    ['dend',  t('showEnd')],
+    ['dev',   t('showDev')],
+    ['sec',   t('showSec')],
+    ['fl',    t('showFloor')]
+  ];
+  p.innerHTML = items.map(([k,lbl])=>
+    `<label class="vp-item"><input type="checkbox" data-show="${k}"${SHOW[k]?' checked':''}>${esc(lbl)}</label>`
+  ).join('');
+  p.querySelectorAll('input[data-show]').forEach(inp=>{
+    inp.addEventListener('change',()=>{
+      SHOW[inp.dataset.show]=inp.checked;
+      localStorage.setItem('shk_show',JSON.stringify(SHOW));
+      render();
+    });
+  });
 }
 
 // ── KEY / DATA ────────────────────────────────────────────────────
 function makeKey(sec,floor,work){ return [String(sec||''),String(floor||''),String(work||'')].join('|||'); }
 function getPct(sec,floor,work){ return DATA[makeKey(sec,floor,work)]?.pct||0; }
-function getCell(sec,floor,work){ return DATA[makeKey(sec,floor,work)]||{found:false,pct:0,updatedAt:'',planDate:'',factDate:'',dev:null}; }
+function getCell(sec,floor,work){ return DATA[makeKey(sec,floor,work)]||{found:false,pct:0,updatedAt:'',startDate:'',planDate:'',factDate:'',dev:null}; }
 // «Отставание» из таблицы → число дней или null.
 // Принимаем ТОЛЬКО чистое число (целое/дробное со знаком).
 // Дата ("2026-06-15"), текст, пустое → null, чтобы не показывать мусор
@@ -644,46 +724,64 @@ function devDays(s){
 function cellHtml(sec,floor,work,colspan){
   const d=getCell(sec,floor,work);
   const cs=colspan?` colspan="${colspan}"` :'';
-  const bar=barColor(d.pct);
   const isEmpty=d.pct===0;
   const isDone=d.pct===100;
-
-  const hasFactDate=!!d.factDate&&String(d.factDate).trim()!=='';
-  const dateStr=fmtShort(hasFactDate?d.factDate:d.planDate);
-  const dateLabel=(d.found && dateStr)?(hasFactDate?'✓'+dateStr:dateStr):'';
+  const bar=cellBarColor(d);
+  const tint=d.found?cellTint(d):'';
 
   const sl=SEC_LBL[CURRENT_LANG]||'с';
   const fl=FL_LBL[CURRENT_LANG]||'э';
   const dy=DAY_LBL[CURRENT_LANG]||'д';
 
-  // Отставание: только если запись реально есть в базе, не завершена,
-  // не пустая и значение — корректное ненулевое число.
-  // >0 — отстаёт (красный, +), <0 — опережение (зелёный, модуль)
+  // Даты (только если запись есть в базе)
+  const hasFactDate=!!d.factDate&&String(d.factDate).trim()!=='';
+  const endStr=fmtShort(hasFactDate?d.factDate:d.planDate);
+  const endLabel=(d.found&&SHOW.dend&&endStr)?(hasFactDate?'✓'+endStr:endStr):'';
+  const startStr=fmtShort(d.startDate);
+  const startLabel=(d.found&&SHOW.dstart&&startStr)?('›'+startStr):'';
+
+  // Отставание: и на ненaчатых тоже, если старт просрочен (dev>0)
   let devHtml='';
-  if(d.found && !isEmpty && !isDone && d.dev!==null && d.dev!==0){
+  if(SHOW.dev && d.found && !isDone && d.dev!==null && d.dev!==0){
     devHtml = d.dev>0
       ? `<div class="c-dev late">+${d.dev}${dy}</div>`
       : `<div class="c-dev ahead">${Math.abs(d.dev)}${dy}</div>`;
   }
 
-  const trEl = (dateLabel&&!isEmpty) || devHtml
-    ? `<div class="c-topright">${dateLabel&&!isEmpty?`<div class="c-date">${esc(dateLabel)}</div>`:''}${devHtml}</div>`
-    : '';
+  // Режим «к дате»: незавершённые работы, которые должны идти/закончиться
+  // к выбранной дате — яркие, с целевым % (→78%); остальные затемняются.
+  let dim=false, targetHtml='';
+  if(DEADLINE){
+    const sd=parseDate(d.startDate), ed=parseDate(d.planDate);
+    const relevant = d.found && !isDone && sd && sd<=DEADLINE;
+    if(relevant){
+      let target=100;
+      if(ed && ed>DEADLINE && ed>sd) target=Math.max(0,Math.min(100,Math.round((DEADLINE-sd)/(ed-sd)*100)));
+      targetHtml=`<div class="c-target">→${target}%</div>`;
+    } else dim=true;
+  }
 
+  const trParts=[startLabel?`<div class="c-date">${esc(startLabel)}</div>`:'',
+                 endLabel?`<div class="c-date">${esc(endLabel)}</div>`:'',
+                 devHtml, targetHtml].join('');
+  const trEl = trParts ? `<div class="c-topright">${trParts}</div>` : '';
+
+  const pctTxt = SHOW.pct ? (isEmpty?'—':d.pct+'%') : '';
   const topRow=`<div class="ci-top">
-    <div class="c-pct${isEmpty?' empty':''}">${isEmpty?'—':d.pct+'%'}</div>
+    <div class="c-pct${isEmpty?' empty':''}">${pctTxt}</div>
     ${trEl}
   </div>`;
 
-  const botRow=!isEmpty?`<div class="ci-bot">
-    <div class="c-sec">${sl}${esc(String(sec))}</div>
-    ${floor!==''?`<div class="c-fl">${fl}${esc(String(floor))}</div>`:''}
+  const showBot = (!isEmpty || (d.dev!==null&&d.dev>0)) && (SHOW.sec || SHOW.fl);
+  const botRow=showBot?`<div class="ci-bot">
+    ${SHOW.sec?`<div class="c-sec">${sl}${esc(String(sec))}</div>`:'<div></div>'}
+    ${(SHOW.fl&&floor!=='')?`<div class="c-fl">${fl}${esc(String(floor))}</div>`:''}
   </div>`:'';
 
-  const barHtml=`<div class="c-bar-track"></div>${bar?`<div class="c-bar-fill" style="width:${d.pct}%;background:${bar}"></div>`:''}`;
+  const barHtml=`<div class="c-bar-track"></div>${bar&&!isEmpty?`<div class="c-bar-fill" style="width:${d.pct}%;background:${bar}"></div>`:''}`;
 
-  return `<td class="cell${isDone?' done':''}" data-sec="${esc(String(sec))}" data-floor="${esc(String(floor))}" data-work="${esc(String(work))}"${cs}>
-    <div class="ci">${topRow}${botRow}${barHtml}</div>
+  return `<td class="cell${isDone?' done':''}${dim?' dim':''}" data-sec="${esc(String(sec))}" data-floor="${esc(String(floor))}" data-work="${esc(String(work))}"${cs}>
+    <div class="ci"${tint?` style="background:${tint}"`:''}>${topRow}${botRow}${barHtml}</div>
   </td>`;
 }
 
@@ -704,13 +802,43 @@ function render(){
   FILTER_FLOOR = document.getElementById('floorSel').value;
   FILTER_GROUP = document.getElementById('groupSel').value;
   FILTER_WORK  = document.getElementById('workSel').value;
+  const dl = document.getElementById('deadlineInp').value;   // yyyy-mm-dd
+  DEADLINE = dl ? new Date(dl+'T23:59:59') : null;
   const board=document.getElementById('board');
   const empty=document.getElementById('emptyState');
+  if(MODE==='summary'){ renderSummary(board,empty); renderSB(); return; }
   if(!CONFIG.sections.length){board.style.display='none';empty.style.display='flex';return;}
   board.style.display='table'; empty.style.display='none';
   MODE==='section' ? renderBySection(board) : renderByWork(board);
   renderProgress();
   renderSB();
+}
+
+// ── Сводка: лист «Сводка» из Google как есть ─────────────────────
+function renderSummary(board,empty){
+  if(!SUMMARY.length){
+    board.style.display='none';
+    empty.style.display='flex';
+    empty.querySelector('.empty-ttl').textContent=t('noSummary');
+    return;
+  }
+  board.style.display='table'; empty.style.display='none';
+  const keys=Object.keys(SUMMARY[0]);
+  let h='<thead><tr>'+keys.map(k=>
+    `<th class="h-work" style="width:auto;min-width:80px;padding:6px 10px;">${esc(k)}</th>`).join('')+'</tr></thead><tbody>';
+  SUMMARY.forEach(r=>{
+    h+='<tr>'+keys.map(k=>{
+      const v=(r[k]===null||r[k]===undefined)?'':String(r[k]);
+      let st='padding:6px 10px;font-size:11px;border-bottom:1px solid var(--brd);border-right:1px solid var(--brd);background:var(--bg2);white-space:nowrap;';
+      if(/отстав|kašnj|kasnj|lag/i.test(k)){
+        const n=parseFloat(v.replace(',','.'));
+        if(!isNaN(n)&&n>0) st+='color:#dc2626;font-weight:700;';
+        else if(!isNaN(n)&&n<0) st+='color:#16a34a;font-weight:700;';
+      }
+      return `<td style="${st}">${esc(v)}</td>`;
+    }).join('')+'</tr>';
+  });
+  board.innerHTML=h+'</tbody>';
 }
 
 function getSections(){ return CONFIG.sections.filter(s=>FILTER_SEC.size===0||FILTER_SEC.has(String(s['Секция']))); }
@@ -942,7 +1070,7 @@ function saveCell(){
   const pctNew=parseInt(document.getElementById('pctSl').value);
   const pctOld=DATA[CUR.key]?.pct||0;
   const savedCUR={...CUR};
-  if(!DATA[savedCUR.key])DATA[savedCUR.key]={found:true,pct:0,updatedAt:'',planDate:'',factDate:'',dev:null};
+  if(!DATA[savedCUR.key])DATA[savedCUR.key]={found:true,pct:0,updatedAt:'',startDate:'',planDate:'',factDate:'',dev:null};
   DATA[savedCUR.key].pct=pctNew;
   closeModal(); render(); setSt('spin',t('saving'));
   const now=new Date();
