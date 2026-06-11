@@ -465,6 +465,7 @@ async function loadAll(){
     (dat.rows||[]).forEach(r => {
       const k = makeKey(r['Секция'], r['Этаж'], r['Вид работ']);
       DATA[k] = {
+        found:    true,
         pct:      parseFloat(r['% выполнения'])||0,
         updatedAt:r['Обновлено'] ||'',
         planDate: normalizeDate(r['Дата план']),
@@ -588,11 +589,17 @@ function setMode(m){
 // ── KEY / DATA ────────────────────────────────────────────────────
 function makeKey(sec,floor,work){ return [String(sec||''),String(floor||''),String(work||'')].join('|||'); }
 function getPct(sec,floor,work){ return DATA[makeKey(sec,floor,work)]?.pct||0; }
-function getCell(sec,floor,work){ return DATA[makeKey(sec,floor,work)]||{pct:0,updatedAt:'',planDate:'',factDate:'',dev:null}; }
-// «Отставание» из таблицы → число или null. Пустое/нечисловое = null.
+function getCell(sec,floor,work){ return DATA[makeKey(sec,floor,work)]||{found:false,pct:0,updatedAt:'',planDate:'',factDate:'',dev:null}; }
+// «Отставание» из таблицы → число дней или null.
+// Принимаем ТОЛЬКО чистое число (целое/дробное со знаком).
+// Дата ("2026-06-15"), текст, пустое → null, чтобы не показывать мусор
+// вроде "+2026д", если в ячейку случайно попала дата или формула.
 function parseDev(v){
-  if(v===''||v===null||v===undefined) return null;
-  const n=parseFloat(String(v).replace(',','.'));
+  if(v===null||v===undefined) return null;
+  const s=String(v).trim().replace(',', '.');
+  if(s==='') return null;
+  if(!/^[+-]?\d+(\.\d+)?$/.test(s)) return null;
+  const n=parseFloat(s);
   return isNaN(n)?null:n;
 }
 
@@ -643,16 +650,17 @@ function cellHtml(sec,floor,work,colspan){
 
   const hasFactDate=!!d.factDate&&String(d.factDate).trim()!=='';
   const dateStr=fmtShort(hasFactDate?d.factDate:d.planDate);
-  const dateLabel=dateStr?(hasFactDate?'✓'+dateStr:dateStr):'';
+  const dateLabel=(d.found && dateStr)?(hasFactDate?'✓'+dateStr:dateStr):'';
 
   const sl=SEC_LBL[CURRENT_LANG]||'с';
   const fl=FL_LBL[CURRENT_LANG]||'э';
   const dy=DAY_LBL[CURRENT_LANG]||'д';
 
-  // Отставание: показываем только на незавершённых непустых ячейках.
-  // >0 — отстаёт (красный, со знаком +), <0 — опережение (зелёный, модуль)
+  // Отставание: только если запись реально есть в базе, не завершена,
+  // не пустая и значение — корректное ненулевое число.
+  // >0 — отстаёт (красный, +), <0 — опережение (зелёный, модуль)
   let devHtml='';
-  if(!isEmpty && !isDone && d.dev!==null && d.dev!==0){
+  if(d.found && !isEmpty && !isDone && d.dev!==null && d.dev!==0){
     devHtml = d.dev>0
       ? `<div class="c-dev late">+${d.dev}${dy}</div>`
       : `<div class="c-dev ahead">${Math.abs(d.dev)}${dy}</div>`;
@@ -934,7 +942,7 @@ function saveCell(){
   const pctNew=parseInt(document.getElementById('pctSl').value);
   const pctOld=DATA[CUR.key]?.pct||0;
   const savedCUR={...CUR};
-  if(!DATA[savedCUR.key])DATA[savedCUR.key]={pct:0,updatedAt:'',planDate:'',factDate:'',dev:null};
+  if(!DATA[savedCUR.key])DATA[savedCUR.key]={found:true,pct:0,updatedAt:'',planDate:'',factDate:'',dev:null};
   DATA[savedCUR.key].pct=pctNew;
   closeModal(); render(); setSt('spin',t('saving'));
   const now=new Date();
