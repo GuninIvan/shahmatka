@@ -57,6 +57,65 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);height:100vh;
 .msel-all{border-bottom:1px solid var(--brd);margin-bottom:4px;padding-bottom:5px;font-weight:600;}
 /* Подпись работы в строке (на секцию / на площадку): переносится, не обрывается */
 .rh-work{font-size:8.5px;line-height:1.25;white-space:normal;word-break:break-word;color:var(--ink2);max-width:72px;text-align:left;}
+
+/* Под-таблицы режима «По виду работ»: работы на секцию и на площадку */
+.sub-board{border-collapse:separate;border-spacing:0;margin:14px 0 0 0;background:var(--bg2);}
+.sub-board th.corner2{position:sticky;left:0;z-index:10;background:var(--bg2);font-size:9px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.4px;padding:5px 8px;border-right:2px solid var(--brd2);border-bottom:2px solid var(--brd2);text-align:left;min-width:64px;max-width:110px;white-space:normal;}
+.sub-board th.h-work{border-bottom:2px solid var(--brd2);}
+.sub-board td.rh{font-size:9px;}
+
+/* ── Диаграмма Ганта ── */
+#ganttWrap{min-width:max-content;}
+/* ── Диаграмма Ганта ── */
+.g-ctrl{display:flex;align-items:center;gap:8px;padding:6px 4px;font-size:11px;color:var(--ink3);position:sticky;left:0;}
+.g-ctrl input[type=range]{width:140px;accent-color:var(--acc);}
+.g-hdr{display:flex;position:sticky;top:0;z-index:8;background:var(--bg1);}
+.g-hside{position:sticky;left:0;z-index:9;background:var(--bg1);flex:0 0 232px;border-right:2px solid var(--brd2);border-bottom:2px solid var(--brd2);}
+.g-months{display:flex;border-bottom:2px solid var(--brd2);}
+.g-m{flex-shrink:0;font-size:9px;color:var(--ink3);border-left:1px solid var(--brd);padding:3px 0 3px 4px;white-space:nowrap;overflow:hidden;background:var(--bg1);}
+.g-body{position:relative;}
+.g-gridlayer{position:absolute;top:0;bottom:0;left:232px;pointer-events:none;z-index:0;}
+.g-gl{position:absolute;top:0;bottom:0;border-left:1px solid var(--brd);}
+.g-today{position:absolute;top:0;bottom:0;border-left:2px solid #e03131;opacity:.65;}
+.g-row{display:flex;align-items:center;height:28px;position:relative;}
+.g-row.child{height:23px;}
+.g-row:hover .g-lane{background:rgba(0,0,0,.022);}
+.g-side{position:sticky;left:0;z-index:5;background:var(--bg1);flex:0 0 232px;height:100%;display:flex;align-items:center;gap:5px;padding:0 8px;border-right:2px solid var(--brd2);border-bottom:1px solid var(--brd);font-size:11px;color:var(--ink1);overflow:hidden;}
+.g-row.parent .g-side{cursor:pointer;font-weight:600;}
+.g-row.child  .g-side{font-size:10px;color:var(--ink2);padding-left:24px;font-weight:400;}
+.g-caret{flex-shrink:0;width:10px;color:var(--ink3);font-size:9px;}
+.g-wdot{flex-shrink:0;width:8px;height:8px;border-radius:2px;}
+.g-sname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.g-cnt{flex-shrink:0;font-size:9px;color:var(--ink3);}
+.g-lane{position:relative;height:100%;border-bottom:1px solid var(--brd);flex-shrink:0;}
+.g-bar{position:absolute;top:50%;transform:translateY(-50%);height:14px;border-radius:7px;background:#e3e5e9;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(0,0,0,.07);}
+.g-row.child .g-bar{height:11px;border-radius:6px;}
+.g-bar.clk{cursor:pointer;}
+.g-bar.clk:hover{box-shadow:inset 0 0 0 1px var(--acc);}
+.g-fill{position:absolute;top:0;left:0;bottom:0;}
+.g-pct{position:absolute;top:50%;transform:translateY(-50%);font-size:9px;color:var(--ink3);white-space:nowrap;}
+.g-nodata{font-size:9px;color:var(--ink3);position:absolute;top:50%;transform:translateY(-50%);}
+.gt-toolbar{display:flex;gap:8px;align-items:center;padding:7px 12px;font-size:11px;color:var(--ink3);position:sticky;left:0;}
+.gt-toolbar input[type=range]{width:130px;accent-color:var(--acc);}
+.gt-head{display:flex;position:sticky;top:0;z-index:30;background:var(--bg2);border-bottom:2px solid var(--brd2);}
+.gt-row{display:flex;border-bottom:1px solid var(--brd);background:var(--bg2);}
+.gt-row.parent{background:var(--bg3);}
+.gt-label{position:sticky;left:0;z-index:20;background:inherit;width:230px;min-width:230px;max-width:230px;padding:3px 8px;font-size:11px;color:var(--ink2);border-right:2px solid var(--brd2);display:flex;align-items:center;gap:6px;overflow:hidden;}
+.gt-label .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.gt-label .tw{width:11px;flex-shrink:0;font-size:9px;color:var(--ink3);}
+.gt-row.parent .gt-label{cursor:pointer;font-weight:600;color:var(--ink);}
+.gt-label .clrdot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+.gt-canvas{position:relative;height:24px;flex:0 0 auto;}
+.gt-head .gt-canvas{height:26px;}
+.gt-month{position:absolute;top:0;bottom:0;border-left:1px solid var(--brd);font-size:9px;color:var(--ink3);padding:2px 0 0 3px;white-space:nowrap;overflow:hidden;}
+.gt-grid{position:absolute;top:0;bottom:0;border-left:1px solid var(--brd);opacity:.55;}
+.gt-today{position:absolute;top:0;bottom:0;border-left:2px solid #e03131;z-index:6;}
+.gt-bar{position:absolute;top:5px;height:14px;border-radius:4px;background:#e3e7eb;cursor:pointer;z-index:5;min-width:3px;}
+.gt-bar .gt-fill{position:absolute;left:0;top:0;bottom:0;border-radius:4px 0 0 4px;}
+.gt-bar.late{box-shadow:0 0 0 1px #e0313188;}
+.gt-bar.parentbar{cursor:pointer;opacity:.92;height:9px;top:8px;border-radius:3px;}
+.gt-devtxt{position:absolute;top:5px;font-size:8.5px;font-weight:700;color:#c92a2a;white-space:nowrap;z-index:5;}
+.gt-pcttxt{position:absolute;top:6px;font-size:8.5px;color:var(--ink3);white-space:nowrap;z-index:5;}
 .prog-wrap{display:flex;gap:12px;flex-wrap:wrap;padding:5px 16px;background:var(--bg2);border-bottom:1px solid var(--brd);flex-shrink:0;}
 .prog-item{display:flex;align-items:center;gap:6px;}
 .prog-lbl{font-size:10px;color:var(--ink2);white-space:nowrap;}
@@ -188,6 +247,7 @@ td.cell.dim .ci{opacity:.35;filter:grayscale(.8);}
     <div class="chips">
       <span class="chip on" id="mode-sec" onclick="setMode('section')"></span>
       <span class="chip" id="mode-work" onclick="setMode('work')"></span>
+      <span class="chip" id="mode-gantt" onclick="setMode('gantt')"></span>
       <span class="chip" id="mode-sum" onclick="setMode('summary')"></span>
     </div>
     <div class="sep"></div>
@@ -225,6 +285,8 @@ td.cell.dim .ci{opacity:.35;filter:grayscale(.8);}
   <div class="loader" id="loader"><div class="spin"></div><div class="loader-txt" id="loaderTxt"></div></div>
   <div class="empty-state" id="emptyState"><div class="empty-ico">🏗</div><div class="empty-ttl" id="ui-loading"></div></div>
   <table id="board" style="display:none"></table>
+  <div id="subBoards"></div>
+  <div id="ganttWrap" style="display:none"></div>
 </div>
 
 <div class="stb">
@@ -309,6 +371,22 @@ const SEC_LBL = { ru:'с', sr:'s', en:'s' };
 const FL_LBL  = { ru:'э', sr:'sp', en:'fl' };
 const DAY_LBL = { ru:'д', sr:'d', en:'d' };   // суффикс дней в отставании
 
+// ── Цвет колонки работы: фон ячейки «Вид работ» в Google-таблице ──
+function workColor(name){
+  const w = CONFIG.works.find(x=>String(x['Вид работ'])===String(name));
+  const c = w && String(w['Цвет']||'').trim();
+  return (c && /^#[0-9a-f]{6}$/i.test(c)) ? c : '';
+}
+function hexA(hex,a){   // #rrggbb -> rgba(r,g,b,a)
+  const n=parseInt(hex.slice(1),16);
+  return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+}
+// Подчёркивание названия работы в шапке полосой её цвета
+function thWork(w){
+  const c=workColor(w['Вид работ']);
+  return `<th class="h-work"${c?` style="box-shadow:inset 0 -3px 0 ${c}"`:''}>${esc(workLabel(w))}</th>`;
+}
+
 // Перевод названия работы ТОЛЬКО для отображения.
 // В базу и в ключ всегда уходит русское w['Вид работ'].
 // Колонки в «Списке работ»: «Вид работ SR», «Вид работ EN».
@@ -344,6 +422,7 @@ function applyLang(){
   document.getElementById('ui-refresh').textContent    = t('refresh');
   document.getElementById('mode-sec').textContent      = t('bySection');
   document.getElementById('mode-work').textContent     = t('byWork');
+  document.getElementById('mode-gantt').textContent    = t('byGantt');
   document.getElementById('mode-sum').textContent      = t('bySummary');
   document.getElementById('ui-deadlineLbl').textContent= t('deadlineLbl');
   document.getElementById('ui-showBtn').textContent    = t('showBtn');
@@ -663,8 +742,10 @@ function rebuildSecChips(){
 
 function setMode(m){
   MODE=m;
+  if(m==='gantt') GANTT_SCROLLED=false;   // заново прокрутить к «сегодня»
   document.getElementById('mode-sec').classList.toggle('on',m==='section');
   document.getElementById('mode-work').classList.toggle('on',m==='work');
+  document.getElementById('mode-gantt').classList.toggle('on',m==='gantt');
   document.getElementById('mode-sum').classList.toggle('on',m==='summary');
   render();
 }
@@ -819,7 +900,11 @@ function cellHtml(sec,floor,work,colspan){
 
   const barHtml=`<div class="c-bar-track"></div>${bar&&!isEmpty?`<div class="c-bar-fill" style="width:${d.pct}%;background:${bar}"></div>`:''}`;
 
-  return `<td class="cell${isDone?' done':''}${dim?' dim':''}" data-sec="${esc(String(sec))}" data-floor="${esc(String(floor))}" data-work="${esc(String(work))}"${cs}>
+  // Фоновая подкраска столбца цветом работы (за карточкой)
+  const wc=workColor(work);
+  const tdStyle=wc?` style="background:${hexA(wc,0.13)}"`:'';
+
+  return `<td class="cell${isDone?' done':''}${dim?' dim':''}" data-sec="${esc(String(sec))}" data-floor="${esc(String(floor))}" data-work="${esc(String(work))}"${cs}${tdStyle}>
     <div class="ci"${tint?` style="background:${tint}"`:''}>${topRow}${botRow}${barHtml}</div>
   </td>`;
 }
@@ -836,16 +921,201 @@ function isWorkApplicable(work,section,floor){
   return floorRule.split(',').map(f=>parseInt(f.trim())).filter(f=>!isNaN(f)).includes(floor);
 }
 
+// ── ДИАГРАММА ГАНТА ──────────────────────────────────────────────
+// Строка-родитель = вид работ (сворачивается), дети = этажи по возрастанию.
+// Колбаска: трек = план (старт→финиш), заливка = % выполнения,
+// цвет заливки — та же логика отставания, что у ячеек (cellBarColor).
+let GANTT_PXD  = parseFloat(localStorage.getItem('shk_gpxd')) || 2.5;  // пикселей в дне
+let GANTT_OPEN = new Set();      // развёрнутые виды работ
+let GANTT_SCROLLED = false;      // авто-прокрутка к «сегодня» один раз
+
+const G_MONTHS = {
+  ru:['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'],
+  sr:['jan','feb','mar','apr','maj','jun','jul','avg','sep','okt','nov','dec'],
+  en:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+};
+const G_DAY = 86400000;
+
+// Дети работы с учётом фильтров; этажи от наименьшего к наивысшему
+function ganttChildren(w){
+  const unit=String(w['Единица приемки']||'').trim();
+  const out=[];
+  if(unit==='Этаж секция'){
+    if(!anyFloorsVisible()) return out;
+    getSections().forEach(s=>{
+      const sec=s['Секция'];
+      const a=parseInt(s['Этажи выше 0.000'])||0, b=parseInt(s['Этажи ниже 0.000'])||0;
+      const fls=[];
+      for(let f=-b;f<=-1;f++) fls.push(f);
+      for(let f=1;f<=a;f++)   fls.push(f);
+      fls.forEach(f=>{
+        if(!floorVisible(f)||!isWorkApplicable(w,sec,f)) return;
+        out.push({sec:String(sec),floor:f,label:`${t('sectionPrefix')} ${sec} · ${f} ${t('floorShort')}`});
+      });
+    });
+  } else if(unit==='Секция'){
+    if(!secBlockVisible()) return out;
+    getSections().forEach(s=>{
+      if(isWorkApplicable(w,s['Секция'],null))
+        out.push({sec:String(s['Секция']),floor:'',label:`${t('sectionPrefix')} ${s['Секция']}`});
+    });
+  } else if(unit==='Площадка'){
+    if(!siteBlockVisible()) return out;
+    out.push({sec:'',floor:'',label:t('onSiteOpt')});
+  }
+  return out;
+}
+
+// Агрегат по детям: интервал = min старт … max план, % = средний, отставание = худшее
+function ganttAgg(w, kids){
+  let start=null, plan=null, pctSum=0, n=0, dev=null;
+  kids.forEach(k=>{
+    const d=getCell(k.sec,k.floor,w['Вид работ']);
+    k.d=d;
+    const s=parseDate(d.startDate), p=parseDate(d.planDate);
+    if(s&&(!start||s<start)) start=s;
+    if(p&&(!plan ||p>plan))  plan=p;
+    pctSum+=d.pct; n++;
+    if(d.dev!==null && (dev===null||d.dev>dev)) dev=d.dev;
+  });
+  return {start, plan, pct:n?Math.round(pctSum/n):0, dev, n};
+}
+
+function ganttBar(x,wd,d,clkAttrs,isChild){
+  const fill = d.pct>0 ? `<div class="g-fill" style="width:${d.pct}%;background:${cellBarColor(d)||'#94a3b8'}"></div>` : '';
+  const tint = cellTint(d);
+  const pctX = x+wd+6;
+  return `<div class="g-bar${clkAttrs?' clk':''}"${clkAttrs||''} style="left:${x}px;width:${Math.max(wd,3)}px;${tint?`background:${tint};`:''}" title="${esc(fmtShort(d.startDate)||'')} → ${esc(fmtShort(d.factDate||d.planDate)||'')} · ${d.pct}%">${fill}</div>`+
+         `<span class="g-pct" style="left:${pctX}px">${d.pct}%</span>`;
+}
+
+function renderGantt(gw){
+  const works = CONFIG.works.filter(w=>inGroup(w)&&workSelected(w));
+  const rows=[];   // {w, kids, agg}
+  works.forEach(w=>{
+    const kids=ganttChildren(w);
+    if(!kids.length) return;
+    rows.push({w, kids, agg:ganttAgg(w,kids)});
+  });
+
+  // Диапазон шкалы
+  let min=null,max=null;
+  rows.forEach(r=>{
+    if(r.agg.start&&(!min||r.agg.start<min)) min=r.agg.start;
+    if(r.agg.plan &&(!max||r.agg.plan >max)) max=r.agg.plan;
+  });
+  const today=new Date(); today.setHours(0,0,0,0);
+  if(!min) min=new Date(today.getTime()-30*G_DAY);
+  if(!max) max=new Date(today.getTime()+60*G_DAY);
+  if(today<min) min=today;                                 // линия «сегодня» всегда на шкале
+  if(today>max) max=new Date(today.getTime()+15*G_DAY);
+  min=new Date(min.getFullYear(),min.getMonth(),1);                       // от начала месяца
+  max=new Date(max.getFullYear(),max.getMonth()+1,15);                    // запас справа
+  const pxd=GANTT_PXD;
+  const X=d=>Math.round((d-min)/G_DAY*pxd);
+  const totalW=X(max);
+
+  // Шапка месяцев + сетка
+  let months='', grid='';
+  const mn=G_MONTHS[CURRENT_LANG]||G_MONTHS.ru;
+  for(let d=new Date(min); d<max; d=new Date(d.getFullYear(),d.getMonth()+1,1)){
+    const next=new Date(d.getFullYear(),d.getMonth()+1,1);
+    const wpx=X(next>max?max:next)-X(d);
+    months+=`<div class="g-m" style="width:${wpx}px">${wpx>26?`${mn[d.getMonth()]} ${String(d.getFullYear()).slice(2)}`:''}</div>`;
+    grid+=`<div class="g-gl" style="left:${X(d)}px"></div>`;
+  }
+  if(today>=min&&today<=max) grid+=`<div class="g-today" style="left:${X(today)}px"></div>`;
+
+  let body='';
+  rows.forEach(r=>{
+    const open=GANTT_OPEN.has(r.w['Вид работ']);
+    const single=r.kids.length===1;
+    const wc=workColor(r.w['Вид работ']);
+    const dot=wc?`<span class="g-wdot" style="background:${wc}"></span>`:'';
+    // одиночные (площадка, одна секция) — сразу кликабельная колбаска без разворота
+    const k0=single?r.kids[0]:null;
+    const clk=single?` data-sec="${esc(k0.sec)}" data-floor="${esc(String(k0.floor))}" data-work="${esc(r.w['Вид работ'])}"`:'';
+    let lane='';
+    if(r.agg.start&&r.agg.plan){
+      lane=ganttBar(X(r.agg.start),X(r.agg.plan)-X(r.agg.start),
+        single?k0.d:{pct:r.agg.pct,dev:r.agg.dev,startDate:'',planDate:'',factDate:''},clk,false);
+    } else lane=`<span class="g-nodata" style="left:6px">${t('noDates')}</span>`;
+    body+=`<div class="g-row parent">
+      <div class="g-side"${single?'':` data-toggle="${esc(r.w['Вид работ'])}"`}>
+        <span class="g-caret">${single?'':(open?'▾':'▸')}</span>${dot}
+        <span class="g-sname" title="${esc(workLabel(r.w))}">${esc(workLabel(r.w))}</span>
+        ${single?'':`<span class="g-cnt">${r.kids.length}</span>`}
+      </div>
+      <div class="g-lane" style="width:${totalW}px">${lane}</div>
+    </div>`;
+    if(open&&!single){
+      r.kids.forEach(k=>{
+        const d=k.d, s=parseDate(d.startDate), p=parseDate(d.factDate)||parseDate(d.planDate);
+        let lane2='';
+        if(s&&p&&p>s) lane2=ganttBar(X(s),X(p)-X(s),d,
+          ` data-sec="${esc(k.sec)}" data-floor="${esc(String(k.floor))}" data-work="${esc(r.w['Вид работ'])}"`,true);
+        else lane2=`<span class="g-nodata" style="left:6px">${t('noDates')}</span>`;
+        body+=`<div class="g-row child">
+          <div class="g-side">${esc(k.label)}</div>
+          <div class="g-lane" style="width:${totalW}px">${lane2}</div>
+        </div>`;
+      });
+    }
+  });
+
+  gw.innerHTML=`
+    <div class="g-ctrl">${t('scaleLbl')} <input type="range" min="1" max="14" step="0.5" value="${pxd}" id="gZoom"></div>
+    <div class="g-hdr"><div class="g-hside"></div><div class="g-months" style="width:${totalW}px">${months}</div></div>
+    <div class="g-body">
+      <div class="g-gridlayer" style="width:${totalW}px">${grid}</div>
+      ${body}
+    </div>`;
+
+  document.getElementById('gZoom').oninput=e=>{
+    GANTT_PXD=parseFloat(e.target.value);
+    localStorage.setItem('shk_gpxd',GANTT_PXD);
+    renderGantt(gw);
+  };
+  gw.onclick=e=>{
+    const tg=e.target.closest('[data-toggle]');
+    if(tg){
+      const n=tg.dataset.toggle;
+      GANTT_OPEN.has(n)?GANTT_OPEN.delete(n):GANTT_OPEN.add(n);
+      renderGantt(gw); return;
+    }
+    const bar=e.target.closest('.g-bar.clk');
+    if(bar) openModal(bar.dataset.sec, bar.dataset.floor, bar.dataset.work);
+  };
+
+  // авто-прокрутка к «сегодня» при первом входе в режим
+  if(!GANTT_SCROLLED){
+    GANTT_SCROLLED=true;
+    const sc=gw.closest('.wrap')||gw.parentElement;
+    if(sc) sc.scrollLeft=Math.max(0, X(today)-Math.round(sc.clientWidth*0.35));
+  }
+}
+
 // ── RENDER ────────────────────────────────────────────────────────
 function render(){
   const dl = document.getElementById('deadlineInp').value;   // yyyy-mm-dd
   DEADLINE = dl ? new Date(dl+'T23:59:59') : null;
   const board=document.getElementById('board');
   const empty=document.getElementById('emptyState');
-  if(MODE==='summary'){ renderSummary(board,empty); renderSB(); return; }
+  const sub=document.getElementById('subBoards');
+  const gw=document.getElementById('ganttWrap');
+  if(MODE!=='work') sub.innerHTML='';
+  gw.style.display = MODE==='gantt' ? 'block' : 'none';
+  if(MODE==='summary'){ gw.innerHTML=''; renderSummary(board,empty); renderSB(); return; }
   if(!CONFIG.sections.length){board.style.display='none';empty.style.display='flex';return;}
-  board.style.display='table'; empty.style.display='none';
-  MODE==='section' ? renderBySection(board) : renderByWork(board);
+  empty.style.display='none';
+  if(MODE==='gantt'){
+    board.style.display='none'; board.innerHTML='';
+    renderGantt(gw);
+  } else {
+    gw.innerHTML='';
+    board.style.display='table';
+    MODE==='section' ? renderBySection(board) : renderByWork(board);
+  }
   renderProgress();
   renderSB();
 }
@@ -912,7 +1182,7 @@ function renderBySection(board){
   sections.forEach(s=>{
     const aw=wf.filter(w=>isWorkApplicable(w,s['Секция'],null));
     if(!aw.length) h+='<th class="h-work">—</th>';
-    else aw.forEach(w=>{h+=`<th class="h-work">${esc(workLabel(w))}</th>`;});
+    else aw.forEach(w=>{h+=thWork(w);});
   });
   h+='</tr></thead><tbody>';
 
@@ -982,71 +1252,66 @@ function renderBySection(board){
 
 function renderByWork(board){
   const sections=getSections();
-  // Колонки группируются по единице приёмки: поэтажные | на секцию | на площадку
   const colsF   = worksFloorFiltered();
   const colsS   = worksSecFiltered();
   const colsSite= worksSiteFiltered();
-  const totalCols = colsF.length + colsS.length + colsSite.length;
+  const sub = document.getElementById('subBoards');
 
-  if(!totalCols){ board.innerHTML='<tbody></tbody>'; return; }
+  // ── Главная таблица: только поэтажные работы ──
+  if(colsF.length){
+    board.style.display='table';
+    let h=`<thead><tr><th class="corner" rowspan="2"><div class="corner-lbl">${t('floorShort')}</div></th>`;
+    h+=`<th class="h-section" colspan="${colsF.length}">${t('byFloorWorks')}</th></tr><tr>`;
+    colsF.forEach(w=>{h+=thWork(w);});
+    h+='</tr></thead><tbody>';
 
-  // Шапка из двух строк: группы единиц приёмки + названия работ
-  let h=`<thead><tr><th class="corner" rowspan="2"><div class="corner-lbl">${t('floorShort')}</div></th>`;
-  if(colsF.length)    h+=`<th class="h-section" colspan="${colsF.length}">${t('byFloorWorks')}</th>`;
-  if(colsS.length)    h+=`<th class="h-section" colspan="${colsS.length}">${t('workOnSec')}</th>`;
-  if(colsSite.length) h+=`<th class="h-section" colspan="${colsSite.length}">${t('workOnSite')}</th>`;
-  h+='</tr><tr>';
-  [...colsF,...colsS,...colsSite].forEach(w=>{h+=`<th class="h-work">${esc(workLabel(w))}</th>`;});
-  h+='</tr></thead><tbody>';
-
-  const naCells = n => '<td class="cell na"></td>'.repeat(n);
-
-  sections.forEach(s=>{
-    const sec=s['Секция'];
-    const above=parseInt(s['Этажи выше 0.000'])||0, below=parseInt(s['Этажи ниже 0.000'])||0;
-    const rows=[];
-
-    // Строка этажа; пустые (ни одной применимой работы) скрываются
-    function floorRow(fl){
-      if(!floorVisible(fl)) return;
-      if(!colsF.some(w=>isWorkApplicable(w,sec,fl))) return;   // пустой этаж
-      let r=`<tr><td class="rh"><div class="rh-inner"><div class="rh-num">${fl}</div><div class="rh-lbl">${t('floorShort')}</div></div></td>`;
-      colsF.forEach(w=>{ r+=!isWorkApplicable(w,sec,fl)?'<td class="cell na"></td>':cellHtml(sec,fl,w['Вид работ']); });
-      r+=naCells(colsS.length+colsSite.length)+'</tr>';
-      rows.push(r);
-    }
-    for(let fl=above;fl>=1;fl--)  floorRow(fl);
-    for(let fl=-1;fl>=-below;fl--) floorRow(fl);
-
-    // Строка «на секцию» этой секции
-    if(colsS.length){
-      const appl=colsS.filter(w=>isWorkApplicable(w,sec,null));
-      if(appl.length){
-        let r=`<tr><td class="rh" style="padding:3px 4px;"><div class="rh-work">${t('onSec')}</div></td>`;
-        r+=naCells(colsF.length);
-        colsS.forEach(w=>{ r+=isWorkApplicable(w,sec,null)?cellHtml(sec,'',w['Вид работ']):'<td class="cell na"></td>'; });
-        r+=naCells(colsSite.length)+'</tr>';
-        rows.push(r);
+    sections.forEach(s=>{
+      const sec=s['Секция'];
+      const above=parseInt(s['Этажи выше 0.000'])||0, below=parseInt(s['Этажи ниже 0.000'])||0;
+      const rows=[];
+      function floorRow(fl){
+        if(!floorVisible(fl)) return;
+        if(!colsF.some(w=>isWorkApplicable(w,sec,fl))) return;   // пустой этаж скрываем
+        let r=`<tr><td class="rh"><div class="rh-inner"><div class="rh-num">${fl}</div><div class="rh-lbl">${t('floorShort')}</div></div></td>`;
+        colsF.forEach(w=>{ r+=!isWorkApplicable(w,sec,fl)?'<td class="cell na"></td>':cellHtml(sec,fl,w['Вид работ']); });
+        rows.push(r+'</tr>');
       }
-    }
-
-    if(rows.length){
-      h+=`<tr><td class="rh group-hdr" colspan="${totalCols+1}">${t('sectionPrefix')} ${sec}</td></tr>`;
-      h+=rows.join('');
-    }
-  });
-
-  // Работы на площадку: общая строка вне секций
-  if(colsSite.length){
-    h+=`<tr><td class="rh group-hdr" colspan="${totalCols+1}">${t('workOnSite')}</td></tr>`;
-    let r=`<tr><td class="rh" style="padding:3px 4px;"><div class="rh-work">${esc(t('onSiteOpt'))}</div></td>`;
-    r+=naCells(colsF.length+colsS.length);
-    colsSite.forEach(w=>{ r+=cellHtml('','',w['Вид работ']); });
-    h+=r+'</tr>';
+      for(let fl=above;fl>=1;fl--)   floorRow(fl);
+      for(let fl=-1;fl>=-below;fl--) floorRow(fl);
+      if(rows.length){
+        h+=`<tr><td class="rh group-hdr" colspan="${colsF.length+1}">${t('sectionPrefix')} ${sec}</td></tr>`+rows.join('');
+      }
+    });
+    board.innerHTML=h+'</tbody>';
+  } else {
+    board.style.display='none';
+    board.innerHTML='';
   }
 
-  h+='</tbody>';
-  board.innerHTML=h;
+  // ── Под-таблицы: работы на секцию и на площадку ──
+  let sh='';
+  if(colsS.length){
+    sh+=`<table class="sub-board"><thead><tr><th class="corner2">${t('workOnSec')}</th>`;
+    colsS.forEach(w=>{sh+=thWork(w);});
+    sh+='</tr></thead><tbody>';
+    sections.forEach(s=>{
+      const sec=s['Секция'];
+      if(!colsS.some(w=>isWorkApplicable(w,sec,null))) return;
+      sh+=`<tr><td class="rh">${t('sectionPrefix')} ${esc(String(sec))}</td>`;
+      colsS.forEach(w=>{ sh+=isWorkApplicable(w,sec,null)?cellHtml(sec,'',w['Вид работ']):'<td class="cell na"></td>'; });
+      sh+='</tr>';
+    });
+    sh+='</tbody></table>';
+  }
+  if(colsSite.length){
+    sh+=`<table class="sub-board"><thead><tr><th class="corner2">${t('workOnSite')}</th>`;
+    colsSite.forEach(w=>{sh+=thWork(w);});
+    sh+='</tr></thead><tbody>';
+    sh+=`<tr><td class="rh">${esc(t('onSiteOpt'))}</td>`;
+    colsSite.forEach(w=>{ sh+=cellHtml('','',w['Вид работ']); });
+    sh+='</tr></tbody></table>';
+  }
+  sub.innerHTML=sh;
 }
 
 function renderProgress(){

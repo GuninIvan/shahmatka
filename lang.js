@@ -14,6 +14,9 @@ const LANG = {
     bySection:      'По секции',
     byWork:         'По виду работ',
     bySummary:      'Сводка',
+    byGantt:        'График',
+    scaleLbl:       'Масштаб:',
+    noDates:        'нет дат',
 
     // Панель «Что показывать» и режим «к дате»
     showBtn:        'Вид',
@@ -97,6 +100,9 @@ const LANG = {
     bySection:      'Po sekciji',
     byWork:         'Po vrsti radova',
     bySummary:      'Pregled',
+    byGantt:        'Gantogram',
+    scaleLbl:       'Razmera:',
+    noDates:        'nema datuma',
 
     // Panel „Šta prikazati" i režim „do datuma"
     showBtn:        'Prikaz',
@@ -180,6 +186,9 @@ const LANG = {
     bySection:      'By section',
     byWork:         'By work type',
     bySummary:      'Summary',
+    byGantt:        'Timeline',
+    scaleLbl:       'Scale:',
+    noDates:        'no dates',
 
     // "What to show" panel and "by date" mode
     showBtn:        'View',
