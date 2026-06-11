@@ -1149,7 +1149,8 @@ function renderGantt(gw){
 // null = работа не релевантна к дате (не начата по плану или уже 100%).
 function taskTarget(d, DL){
   const sd=parseDate(d.startDate), ed=parseDate(d.planDate);
-  if(!d.found || d.pct===100 || !sd || sd>DL) return null;
+  // выполненные (100%) в задания не попадают никогда
+  if(!d.found || Number(d.pct)>=100 || !sd || sd>DL) return null;
   let target=100;
   if(ed && ed>sd){
     const total=Math.round((ed-sd)/G_DAY)+1;        // дней всего, включительно
@@ -1171,6 +1172,7 @@ function renderTasks(tw){
     CONFIG.works.filter(w=>String(w['Единица приемки']||'').trim()===unit&&inGroup(w)&&workSelected(w)).forEach(w=>{
       ganttChildren(w).forEach(k=>{
         const d=getCell(k.sec,k.floor,w['Вид работ']);
+        if(d.pct>=100) return;                       // выполненные не выводим
         const target=taskTarget(d,DL);
         if(target===null) return;
         items.push({w,unit,sec:k.sec,floor:k.floor,label:k.label,d,target,gap:target-d.pct});
@@ -1275,54 +1277,87 @@ function render(){
 // Лист «Сводка» может содержать несколько таблиц (по группам, по видам
 // работ), разделённых пустыми строками. Каждая рисуется карточкой.
 // Если листа нет или он пуст — сводка считается из данных шахматки.
-function sumBar(pct){
-  const c = pct>=100 ? '#2f9e44' : `hsl(${Math.round(pct/99*60)},75%,46%)`;
+function sumBar(pct,gray){
+  const c = gray ? '#9aa3af' : (pct>=100 ? '#2f9e44' : `hsl(${Math.round(Math.min(pct,99)/99*60)},75%,46%)`);
   return `<span class="sum-pb"><span class="tr"><span class="fi" style="width:${Math.min(pct,100)}%;background:${c}"></span></span><span class="tx">${pct}%</span></span>`;
 }
-function sumCellHtml(head,val){
+// Числовое значение процента: понимает и «15 %», и долю 0–1 (0.0671 → 7)
+function sumPctVal(raw){
+  const v=String(raw==null?'':raw).trim();
+  if(v==='') return null;
+  const n=parseFloat(v.replace(',','.').replace('%','').trim());
+  if(isNaN(n)) return null;
+  // без знака % и в диапазоне 0..1 — это доля (0.6257 → 63%, 1 → 100%)
+  if(!v.includes('%') && Math.abs(n)<=1) return Math.round(n*100);
+  return Math.round(n);
+}
+function sumCellHtml(head,val,prevVal){
   const v=String(val==null?'':val).trim();
-  // процентная колонка → бар
-  if(/%/.test(head)||/^\d{1,3}([.,]\d+)?\s*%$/.test(v)){
-    const n=parseFloat(v.replace(',','.').replace('%',''));
-    if(!isNaN(n)) return `<td>${sumBar(Math.round(n))}</td>`;
+  if(/процент|procenat|percent|%/i.test(head)){
+    const n=sumPctVal(v);
+    if(n!==null) return `<td>${sumBar(n,/план|plan/i.test(head))}</td>`;
   }
-  // колонка отставания → подкраска
   if(/отстав|kašnj|kasnj|lag/i.test(head)){
     const n=parseFloat(v.replace(',','.'));
-    if(!isNaN(n)&&n>0) return `<td class="num" style="color:#dc2626;font-weight:700;">${esc(v)}</td>`;
+    if(!isNaN(n)&&n>0) return `<td class="num" style="color:#dc2626;font-weight:700;">+${esc(v)}</td>`;
     if(!isNaN(n)&&n<0) return `<td class="num" style="color:#16a34a;font-weight:700;">${esc(v)}</td>`;
+    if(!isNaN(n))      return `<td class="num" style="color:var(--ink3);">—</td>`;
+  }
+  // повторяющееся значение группирующей колонки — приглушаем
+  if(/групп|grup|group/i.test(head) && v!=='' && v===String(prevVal==null?'':prevVal).trim()){
+    return `<td style="color:var(--ink3);font-size:10px;">${esc(v)}</td>`;
   }
   if(/^-?\d+([.,]\d+)?$/.test(v)) return `<td class="num">${esc(v)}</td>`;
   return `<td>${esc(v)}</td>`;
 }
+// Сетка листа → список таблиц: режем по пустым строкам И по пустым колонкам
+// (на листе таблицы могут стоять рядом по горизонтали)
+function splitSummaryGrid(grid){
+  const vblocks=[]; let cur=[];
+  grid.forEach(row=>{
+    if(row.some(c=>String(c).trim()!=='')) cur.push(row);
+    else if(cur.length){ vblocks.push(cur); cur=[]; }
+  });
+  if(cur.length) vblocks.push(cur);
+  const tables=[];
+  vblocks.forEach(b=>{
+    const W=Math.max(...b.map(r=>r.length));
+    const colHas=[];
+    for(let c=0;c<W;c++) colHas[c]=b.some(r=>String(r[c]||'').trim()!=='');
+    let start=null;
+    for(let c=0;c<=W;c++){
+      if(c<W && colHas[c]){ if(start===null) start=c; continue; }
+      if(start!==null){
+        const rows=b.map(r=>r.slice(start,c)).filter(r=>r.some(x=>String(x||'').trim()!==''));
+        if(rows.length) tables.push(rows);
+        start=null;
+      }
+    }
+  });
+  return tables;
+}
 function renderSummary(sw,empty){
   let html='';
   if(SUMMARY.length){
-    // режем сетку на блоки по пустым строкам
-    const blocks=[]; let cur=[];
-    SUMMARY.forEach(row=>{
-      const has=row.some(c=>String(c).trim()!=='');
-      if(has) cur.push(row);
-      else if(cur.length){ blocks.push(cur); cur=[]; }
-    });
-    if(cur.length) blocks.push(cur);
-
-    blocks.forEach(b=>{
+    splitSummaryGrid(SUMMARY).forEach(b=>{
       let title='';
-      // первая строка с одной заполненной ячейкой = заголовок таблицы
       if(b.length>1 && b[0].filter(c=>String(c).trim()!=='').length===1){
         title=b[0].find(c=>String(c).trim()!==''); b=b.slice(1);
       }
       if(!b.length) return;
-      // обрезаем полностью пустые колонки справа
-      let w=b[0].length;
-      while(w>1 && b.every(r=>String(r[w-1]||'').trim()==='')) w--;
-      const head=b[0].slice(0,w);
+      const head=b[0];
+      // нет своего заголовка — даём по составу колонок
+      if(!title){
+        const hs=head.map(x=>String(x).toLowerCase());
+        if(hs.some(x=>/вид работ|vrsta|work type/.test(x))) title=t('sumByWork');
+        else if(hs.some(x=>/групп|grup|group/.test(x)))     title=t('sumByGroup');
+      }
       html+=`<div class="sum-card">${title?`<div class="sum-title">${esc(title)}</div>`:''}<table class="sum-tbl"><thead><tr>`;
-      head.forEach(hd=>{ html+=`<th>${esc(hd)}</th>`; });
+      head.forEach(hd=>{ html+=`<th>${esc(String(hd))}</th>`; });
       html+='</tr></thead><tbody>';
-      b.slice(1).forEach(r=>{
-        html+='<tr>'+head.map((hd,i)=>sumCellHtml(hd,r[i])).join('')+'</tr>';
+      b.slice(1).forEach((r,ri)=>{
+        const prev=ri>0?b[ri]:null;   // b[ri] = предыдущая строка данных (b сдвинут на header)
+        html+='<tr>'+head.map((hd,i)=>sumCellHtml(hd,r[i],prev?prev[i]:null)).join('')+'</tr>';
       });
       html+='</tbody></table></div>';
     });
