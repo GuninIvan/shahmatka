@@ -95,6 +95,44 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);height:100vh;
 .g-fill{position:absolute;top:0;left:0;bottom:0;}
 .g-pct{position:absolute;top:50%;transform:translateY(-50%);font-size:9px;color:var(--ink3);white-space:nowrap;}
 .g-nodata{font-size:9px;color:var(--ink3);position:absolute;top:50%;transform:translateY(-50%);}
+/* Заголовки в Ганте: единица приёмки и группа работ */
+.g-row.uhdr,.g-row.ghdr{height:24px;}
+.g-row.uhdr .g-side{font-size:9px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.4px;background:var(--bg2);}
+.g-row.ghdr .g-side{font-size:9.5px;font-weight:600;color:var(--ink3);padding-left:14px;background:var(--bg1);}
+.g-row.uhdr .g-lane{background:var(--bg2);}
+/* ── Сводка ── */
+#sumWrap{padding:12px 16px 24px;max-width:1100px;}
+.sum-card{background:var(--bg2);border:1px solid var(--brd);border-radius:8px;margin-bottom:18px;overflow:auto;}
+.sum-title{font-size:11px;font-weight:700;color:var(--acc);text-transform:uppercase;letter-spacing:.4px;padding:9px 12px;border-bottom:2px solid var(--brd2);}
+table.sum-tbl{border-collapse:collapse;width:100%;}
+.sum-tbl th{font-size:10px;color:var(--ink3);text-align:left;padding:6px 12px;border-bottom:2px solid var(--brd2);white-space:nowrap;background:var(--bg2);}
+.sum-tbl td{font-size:11px;color:var(--ink1);padding:6px 12px;border-bottom:1px solid var(--brd);white-space:nowrap;}
+.sum-tbl tr:last-child td{border-bottom:none;}
+.sum-tbl td.num{font-family:var(--mono);text-align:right;}
+.sum-pb{display:inline-flex;align-items:center;gap:6px;}
+.sum-pb .tr{width:90px;height:7px;background:var(--bg);border-radius:4px;overflow:hidden;flex-shrink:0;}
+.sum-pb .fi{height:100%;border-radius:4px;}
+.sum-pb .tx{font-family:var(--mono);font-size:10px;color:var(--ink2);min-width:32px;text-align:right;}
+/* ── Сменно-суточные задания ── */
+#tasksWrap{padding:12px 16px 24px;max-width:1100px;}
+.tk-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+.tk-date{font-size:13px;font-weight:700;color:var(--ink1);}
+.tk-grp{display:flex;gap:4px;}
+.tk-grp .chip{font-size:10px;}
+.tk-sec{background:var(--bg2);border:1px solid var(--brd);border-radius:8px;margin-bottom:12px;overflow:auto;}
+.tk-sec-h{font-size:10.5px;font-weight:700;color:var(--acc);padding:7px 12px;border-bottom:2px solid var(--brd2);display:flex;gap:8px;align-items:center;}
+.tk-sec-h .n{color:var(--ink3);font-weight:400;}
+table.tk-tbl{border-collapse:collapse;width:100%;}
+.tk-tbl td{font-size:11px;padding:5px 12px;border-bottom:1px solid var(--brd);white-space:nowrap;color:var(--ink1);}
+.tk-tbl tr:last-child td{border-bottom:none;}
+.tk-tbl tr.clk{cursor:pointer;}
+.tk-tbl tr.clk:hover td{background:var(--bg3);}
+.tk-place{color:var(--ink2);}
+.tk-dates{font-family:var(--mono);font-size:10px;color:var(--ink3);}
+.tk-num{font-family:var(--mono);text-align:right;}
+.tk-gap-bad{color:#dc2626;font-weight:700;}
+.tk-gap-ok{color:#16a34a;font-weight:600;}
+.tk-wdot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:-1px;}
 .gt-toolbar{display:flex;gap:8px;align-items:center;padding:7px 12px;font-size:11px;color:var(--ink3);position:sticky;left:0;}
 .gt-toolbar input[type=range]{width:130px;accent-color:var(--acc);}
 .gt-head{display:flex;position:sticky;top:0;z-index:30;background:var(--bg2);border-bottom:2px solid var(--brd2);}
@@ -116,12 +154,6 @@ body{font-family:var(--sans);background:var(--bg);color:var(--ink);height:100vh;
 .gt-bar.parentbar{cursor:pointer;opacity:.92;height:9px;top:8px;border-radius:3px;}
 .gt-devtxt{position:absolute;top:5px;font-size:8.5px;font-weight:700;color:#c92a2a;white-space:nowrap;z-index:5;}
 .gt-pcttxt{position:absolute;top:6px;font-size:8.5px;color:var(--ink3);white-space:nowrap;z-index:5;}
-.prog-wrap{display:flex;gap:12px;flex-wrap:wrap;padding:5px 16px;background:var(--bg2);border-bottom:1px solid var(--brd);flex-shrink:0;}
-.prog-item{display:flex;align-items:center;gap:6px;}
-.prog-lbl{font-size:10px;color:var(--ink2);white-space:nowrap;}
-.prog-bar{width:72px;height:5px;background:var(--bg);border-radius:3px;overflow:hidden;}
-.prog-fill{height:100%;border-radius:3px;transition:width .3s;background:rgba(34,197,94,0.5);}
-.prog-pct{font-family:var(--mono);font-size:10px;color:var(--ink2);min-width:28px;}
 .board-wrap{flex:1;overflow:auto;position:relative;}
 .board-wrap::-webkit-scrollbar{width:5px;height:5px;}
 .board-wrap::-webkit-scrollbar-thumb{background:var(--brd2);border-radius:3px;}
@@ -218,7 +250,6 @@ td.cell.dim .ci{opacity:.35;filter:grayscale(.8);}
   #secChips{width:100%;}
   .fsel{flex:1;min-width:90px;}
   .legend{flex-wrap:wrap;}
-  .prog-wrap{gap:8px 12px;}
   /* Таблица не скроллится отдельно — горизонталь уходит в скролл всей
      страницы, а thead (sticky top:0) прилипает к верху ЭКРАНА, когда
      топбар и фильтры уже уехали вверх. */
@@ -248,6 +279,7 @@ td.cell.dim .ci{opacity:.35;filter:grayscale(.8);}
       <span class="chip on" id="mode-sec" onclick="setMode('section')"></span>
       <span class="chip" id="mode-work" onclick="setMode('work')"></span>
       <span class="chip" id="mode-gantt" onclick="setMode('gantt')"></span>
+      <span class="chip" id="mode-tasks" onclick="setMode('tasks')"></span>
       <span class="chip" id="mode-sum" onclick="setMode('summary')"></span>
     </div>
     <div class="sep"></div>
@@ -279,14 +311,14 @@ td.cell.dim .ci{opacity:.35;filter:grayscale(.8);}
 
 <div class="filterbar" id="viewPanel" style="display:none;"></div>
 
-<div class="prog-wrap" id="progWrap"></div>
-
 <div class="board-wrap" id="bwrap">
   <div class="loader" id="loader"><div class="spin"></div><div class="loader-txt" id="loaderTxt"></div></div>
   <div class="empty-state" id="emptyState"><div class="empty-ico">🏗</div><div class="empty-ttl" id="ui-loading"></div></div>
   <table id="board" style="display:none"></table>
   <div id="subBoards"></div>
   <div id="ganttWrap" style="display:none"></div>
+  <div id="sumWrap" style="display:none"></div>
+  <div id="tasksWrap" style="display:none"></div>
 </div>
 
 <div class="stb">
@@ -423,6 +455,7 @@ function applyLang(){
   document.getElementById('mode-sec').textContent      = t('bySection');
   document.getElementById('mode-work').textContent     = t('byWork');
   document.getElementById('mode-gantt').textContent    = t('byGantt');
+  document.getElementById('mode-tasks').textContent    = t('byTasks');
   document.getElementById('mode-sum').textContent      = t('bySummary');
   document.getElementById('ui-deadlineLbl').textContent= t('deadlineLbl');
   document.getElementById('ui-showBtn').textContent    = t('showBtn');
@@ -585,7 +618,7 @@ async function loadAll(){
     try{ sum = await sumRes.json(); }catch(e){}
     if(cfg.error) throw new Error(cfg.error);
     if(dat.error) throw new Error(dat.error);   // ошибка чтения базы больше не глотается
-    SUMMARY = (sum && !sum.error && sum.rows) ? sum.rows : [];
+    SUMMARY = (sum && !sum.error) ? (sum.grid || (sum.rows ? [Object.keys(sum.rows[0]||{}), ...sum.rows.map(r=>Object.values(r))] : [])) : [];
     CONFIG.works    = cfg.works    || [];
     CONFIG.sections = cfg.sections || [];
     DATA = {};
@@ -746,6 +779,7 @@ function setMode(m){
   document.getElementById('mode-sec').classList.toggle('on',m==='section');
   document.getElementById('mode-work').classList.toggle('on',m==='work');
   document.getElementById('mode-gantt').classList.toggle('on',m==='gantt');
+  document.getElementById('mode-tasks').classList.toggle('on',m==='tasks');
   document.getElementById('mode-sum').classList.toggle('on',m==='summary');
   render();
 }
@@ -864,21 +898,9 @@ function cellHtml(sec,floor,work,colspan){
   // к выбранной дате — яркие, с целевым % (→78%); остальные затемняются.
   let dim=false, targetHtml='';
   if(DEADLINE){
-    const sd=parseDate(d.startDate), ed=parseDate(d.planDate);
-    const relevant = d.found && !isDone && sd && sd<=DEADLINE;
-    if(relevant){
-      // Длительность считается ВКЛЮЧАЯ последний день:
-      // 09.06–24.06 = 16 рабочих дней; к 23.06 пройдено 15 → 94%.
-      // 100% — только если дата окончания <= выбранной даты.
-      const DAY=86400000;
-      let target=100;
-      if(ed && ed>sd){
-        const total=Math.round((ed-sd)/DAY)+1;          // дней всего, включительно
-        const done =Math.floor((DEADLINE-sd)/DAY)+1;    // дней к дате, включительно
-        if(done<total) target=Math.max(0,Math.min(99,Math.round(done/total*100)));
-      }
-      targetHtml=`<div class="c-target">→${target}%</div>`;
-    } else dim=true;
+    const target=taskTarget(d,DEADLINE);
+    if(target!==null) targetHtml=`<div class="c-target">→${target}%</div>`;
+    else dim=true;
   }
 
   const trParts=[startLabel?`<div class="c-date">${esc(startLabel)}</div>`:'',
@@ -990,13 +1012,30 @@ function ganttBar(x,wd,d,clkAttrs,isChild){
 }
 
 function renderGantt(gw){
-  const works = CONFIG.works.filter(w=>inGroup(w)&&workSelected(w));
-  const rows=[];   // {w, kids, agg}
-  works.forEach(w=>{
-    const kids=ganttChildren(w);
-    if(!kids.length) return;
-    rows.push({w, kids, agg:ganttAgg(w,kids)});
+  // Порядок: поэтажные → на секцию → на площадку; внутри — по группам работ
+  const UNIT_ORDER=[['Этаж секция',t('byFloorWorks')],['Секция',t('workOnSec')],['Площадка',t('workOnSite')]];
+  const all = CONFIG.works.filter(w=>inGroup(w)&&workSelected(w));
+  const items=[];   // {type:'unit'|'group'|'work', ...}
+  UNIT_ORDER.forEach(([unit,ulabel])=>{
+    const uworks=all.filter(w=>String(w['Единица приемки']||'').trim()===unit);
+    const urows=[];
+    // группы в порядке появления в «Списке работ»
+    const gorder=[];
+    uworks.forEach(w=>{ const g=String(w['Группа работ']||'').trim(); if(!gorder.includes(g)) gorder.push(g); });
+    gorder.forEach(g=>{
+      const grows=[];
+      uworks.filter(w=>String(w['Группа работ']||'').trim()===g).forEach(w=>{
+        const kids=ganttChildren(w);
+        if(kids.length) grows.push({type:'work', w, kids, agg:ganttAgg(w,kids)});
+      });
+      if(grows.length){
+        if(g) urows.push({type:'group', label:groupLabel(g)});
+        urows.push(...grows);
+      }
+    });
+    if(urows.length){ items.push({type:'unit', label:ulabel}); items.push(...urows); }
   });
+  const rows=items.filter(i=>i.type==='work');
 
   // Диапазон шкалы
   let min=null,max=null;
@@ -1027,7 +1066,16 @@ function renderGantt(gw){
   if(today>=min&&today<=max) grid+=`<div class="g-today" style="left:${X(today)}px"></div>`;
 
   let body='';
-  rows.forEach(r=>{
+  items.forEach(it=>{
+    if(it.type==='unit'){
+      body+=`<div class="g-row uhdr"><div class="g-side">${esc(it.label)}</div><div class="g-lane" style="width:${totalW}px"></div></div>`;
+      return;
+    }
+    if(it.type==='group'){
+      body+=`<div class="g-row ghdr"><div class="g-side">${esc(it.label)}</div><div class="g-lane" style="width:${totalW}px"></div></div>`;
+      return;
+    }
+    const r=it;
     const open=GANTT_OPEN.has(r.w['Вид работ']);
     const single=r.kids.length===1;
     const wc=workColor(r.w['Вид работ']);
@@ -1095,6 +1143,103 @@ function renderGantt(gw){
   }
 }
 
+// ── СМЕННО-СУТОЧНЫЕ ЗАДАНИЯ ──────────────────────────────────────
+// Та же выборка, что подсветка «К дате»: работы, которые к дате должны
+// идти или закончиться. Цель — пропорция по дням ВКЛЮЧАЯ последний день.
+// null = работа не релевантна к дате (не начата по плану или уже 100%).
+function taskTarget(d, DL){
+  const sd=parseDate(d.startDate), ed=parseDate(d.planDate);
+  if(!d.found || d.pct===100 || !sd || sd>DL) return null;
+  let target=100;
+  if(ed && ed>sd){
+    const total=Math.round((ed-sd)/G_DAY)+1;        // дней всего, включительно
+    const done =Math.floor((DL-sd)/G_DAY)+1;        // дней к дате, включительно
+    if(done<total) target=Math.max(0,Math.min(99,Math.round(done/total*100)));
+  }
+  return target;
+}
+
+let TASK_GROUP = localStorage.getItem('shk_tgrp') || 'floor';   // floor | work | group
+
+function renderTasks(tw){
+  const DL = DEADLINE || (()=>{const d=new Date();d.setHours(23,59,59,0);return d;})();
+  const UNIT_ORDER=['Этаж секция','Секция','Площадка'];
+
+  // Собираем задания (фильтры интерфейса действуют через ganttChildren)
+  const items=[];
+  UNIT_ORDER.forEach(unit=>{
+    CONFIG.works.filter(w=>String(w['Единица приемки']||'').trim()===unit&&inGroup(w)&&workSelected(w)).forEach(w=>{
+      ganttChildren(w).forEach(k=>{
+        const d=getCell(k.sec,k.floor,w['Вид работ']);
+        const target=taskTarget(d,DL);
+        if(target===null) return;
+        items.push({w,unit,sec:k.sec,floor:k.floor,label:k.label,d,target,gap:target-d.pct});
+      });
+    });
+  });
+
+  // Группировка
+  const groups=[];   // {key,label,items}
+  const put=(key,label,it)=>{
+    let g=groups.find(x=>x.key===key);
+    if(!g){ g={key,label,items:[]}; groups.push(g); }
+    g.items.push(it);
+  };
+  if(TASK_GROUP==='floor'){
+    // этажи по возрастанию, затем «На секцию», затем «Площадка»
+    items.filter(i=>i.unit==='Этаж секция').sort((a,b)=>a.floor-b.floor)
+      .forEach(i=>put('f'+i.floor, `${i.floor} ${t('floorShort')}`, i));
+    items.filter(i=>i.unit==='Секция').forEach(i=>put('__sec__',t('onSecOpt'),i));
+    items.filter(i=>i.unit==='Площадка').forEach(i=>put('__site__',t('onSiteOpt'),i));
+  } else if(TASK_GROUP==='work'){
+    items.forEach(i=>put('w'+i.w['Вид работ'], workLabel(i.w), i));
+  } else {
+    items.forEach(i=>{
+      const g=String(i.w['Группа работ']||'').trim();
+      put('g'+g, g?groupLabel(g):'—', i);
+    });
+  }
+  // внутри группы: самые горящие сверху
+  groups.forEach(g=>g.items.sort((a,b)=>b.gap-a.gap));
+
+  // Переключатель группировки
+  const gchip=(v,lbl)=>`<span class="chip${TASK_GROUP===v?' on':''}" data-tgrp="${v}">${lbl}</span>`;
+  let h=`<div class="tk-head">
+    <span class="tk-date">${t('tasksFor')} ${('0'+DL.getDate()).slice(-2)}.${('0'+(DL.getMonth()+1)).slice(-2)}.${DL.getFullYear()}</span>
+    <span class="tk-grp">${gchip('floor',t('gByFloor'))}${gchip('work',t('gByWork'))}${gchip('group',t('gByGroup'))}</span>
+  </div>`;
+
+  if(!items.length){
+    h+=`<div class="sum-card" style="padding:18px;font-size:12px;color:var(--ink3);">${t('noTasks')}</div>`;
+  } else groups.forEach(g=>{
+    h+=`<div class="tk-sec"><div class="tk-sec-h">${esc(g.label)} <span class="n">· ${g.items.length}</span></div><table class="tk-tbl"><tbody>`;
+    g.items.forEach(i=>{
+      const wc=workColor(i.w['Вид работ']);
+      const dot=wc?`<span class="tk-wdot" style="background:${wc}"></span>`:'';
+      const gapTd=i.gap>0
+        ?`<td class="tk-num tk-gap-bad">−${i.gap}%</td>`
+        :`<td class="tk-num tk-gap-ok">✓ ${t('onTrack')}</td>`;
+      h+=`<tr class="clk" data-sec="${esc(i.sec)}" data-floor="${esc(String(i.floor))}" data-work="${esc(i.w['Вид работ'])}">
+        <td>${dot}${esc(workLabel(i.w))}</td>
+        <td class="tk-place">${esc(i.label)}</td>
+        <td class="tk-dates">${esc(fmtShort(i.d.startDate)||'')} → ${esc(fmtShort(i.d.planDate)||'')}</td>
+        <td class="tk-num">${i.d.pct}%</td>
+        <td class="tk-num" style="color:var(--acc);font-weight:700;">→${i.target}%</td>
+        ${gapTd}
+      </tr>`;
+    });
+    h+='</tbody></table></div>';
+  });
+
+  tw.innerHTML=h;
+  tw.onclick=e=>{
+    const c=e.target.closest('[data-tgrp]');
+    if(c){ TASK_GROUP=c.dataset.tgrp; localStorage.setItem('shk_tgrp',TASK_GROUP); renderTasks(tw); return; }
+    const r=e.target.closest('tr.clk');
+    if(r) openModal(r.dataset.sec, r.dataset.floor, r.dataset.work);
+  };
+}
+
 // ── RENDER ────────────────────────────────────────────────────────
 function render(){
   const dl = document.getElementById('deadlineInp').value;   // yyyy-mm-dd
@@ -1103,48 +1248,138 @@ function render(){
   const empty=document.getElementById('emptyState');
   const sub=document.getElementById('subBoards');
   const gw=document.getElementById('ganttWrap');
-  if(MODE!=='work') sub.innerHTML='';
-  gw.style.display = MODE==='gantt' ? 'block' : 'none';
-  if(MODE==='summary'){ gw.innerHTML=''; renderSummary(board,empty); renderSB(); return; }
+  const sw=document.getElementById('sumWrap');
+  const tw=document.getElementById('tasksWrap');
+  if(MODE!=='work')    sub.innerHTML='';
+  if(MODE!=='gantt'){  gw.innerHTML='';  } gw.style.display = MODE==='gantt' ?'block':'none';
+  if(MODE!=='summary'){sw.innerHTML='';  } sw.style.display = MODE==='summary'?'block':'none';
+  if(MODE!=='tasks'){  tw.innerHTML='';  } tw.style.display = MODE==='tasks' ?'block':'none';
+  if(MODE==='summary'){ board.style.display='none'; board.innerHTML=''; empty.style.display='none'; renderSummary(sw,empty); renderSB(); return; }
   if(!CONFIG.sections.length){board.style.display='none';empty.style.display='flex';return;}
   empty.style.display='none';
   if(MODE==='gantt'){
     board.style.display='none'; board.innerHTML='';
     renderGantt(gw);
+  } else if(MODE==='tasks'){
+    board.style.display='none'; board.innerHTML='';
+    renderTasks(tw);
   } else {
-    gw.innerHTML='';
     board.style.display='table';
     MODE==='section' ? renderBySection(board) : renderByWork(board);
   }
-  renderProgress();
   renderSB();
 }
 
 // ── Сводка: лист «Сводка» из Google как есть ─────────────────────
-function renderSummary(board,empty){
-  if(!SUMMARY.length){
-    board.style.display='none';
-    empty.style.display='flex';
-    empty.querySelector('.empty-ttl').textContent=t('noSummary');
-    return;
+// ── Сводка ────────────────────────────────────────────────────────
+// Лист «Сводка» может содержать несколько таблиц (по группам, по видам
+// работ), разделённых пустыми строками. Каждая рисуется карточкой.
+// Если листа нет или он пуст — сводка считается из данных шахматки.
+function sumBar(pct){
+  const c = pct>=100 ? '#2f9e44' : `hsl(${Math.round(pct/99*60)},75%,46%)`;
+  return `<span class="sum-pb"><span class="tr"><span class="fi" style="width:${Math.min(pct,100)}%;background:${c}"></span></span><span class="tx">${pct}%</span></span>`;
+}
+function sumCellHtml(head,val){
+  const v=String(val==null?'':val).trim();
+  // процентная колонка → бар
+  if(/%/.test(head)||/^\d{1,3}([.,]\d+)?\s*%$/.test(v)){
+    const n=parseFloat(v.replace(',','.').replace('%',''));
+    if(!isNaN(n)) return `<td>${sumBar(Math.round(n))}</td>`;
   }
-  board.style.display='table'; empty.style.display='none';
-  const keys=Object.keys(SUMMARY[0]);
-  let h='<thead><tr>'+keys.map(k=>
-    `<th class="h-work" style="width:auto;min-width:80px;padding:6px 10px;">${esc(k)}</th>`).join('')+'</tr></thead><tbody>';
-  SUMMARY.forEach(r=>{
-    h+='<tr>'+keys.map(k=>{
-      const v=(r[k]===null||r[k]===undefined)?'':String(r[k]);
-      let st='padding:6px 10px;font-size:11px;border-bottom:1px solid var(--brd);border-right:1px solid var(--brd);background:var(--bg2);white-space:nowrap;';
-      if(/отстав|kašnj|kasnj|lag/i.test(k)){
-        const n=parseFloat(v.replace(',','.'));
-        if(!isNaN(n)&&n>0) st+='color:#dc2626;font-weight:700;';
-        else if(!isNaN(n)&&n<0) st+='color:#16a34a;font-weight:700;';
+  // колонка отставания → подкраска
+  if(/отстав|kašnj|kasnj|lag/i.test(head)){
+    const n=parseFloat(v.replace(',','.'));
+    if(!isNaN(n)&&n>0) return `<td class="num" style="color:#dc2626;font-weight:700;">${esc(v)}</td>`;
+    if(!isNaN(n)&&n<0) return `<td class="num" style="color:#16a34a;font-weight:700;">${esc(v)}</td>`;
+  }
+  if(/^-?\d+([.,]\d+)?$/.test(v)) return `<td class="num">${esc(v)}</td>`;
+  return `<td>${esc(v)}</td>`;
+}
+function renderSummary(sw,empty){
+  let html='';
+  if(SUMMARY.length){
+    // режем сетку на блоки по пустым строкам
+    const blocks=[]; let cur=[];
+    SUMMARY.forEach(row=>{
+      const has=row.some(c=>String(c).trim()!=='');
+      if(has) cur.push(row);
+      else if(cur.length){ blocks.push(cur); cur=[]; }
+    });
+    if(cur.length) blocks.push(cur);
+
+    blocks.forEach(b=>{
+      let title='';
+      // первая строка с одной заполненной ячейкой = заголовок таблицы
+      if(b.length>1 && b[0].filter(c=>String(c).trim()!=='').length===1){
+        title=b[0].find(c=>String(c).trim()!==''); b=b.slice(1);
       }
-      return `<td style="${st}">${esc(v)}</td>`;
-    }).join('')+'</tr>';
+      if(!b.length) return;
+      // обрезаем полностью пустые колонки справа
+      let w=b[0].length;
+      while(w>1 && b.every(r=>String(r[w-1]||'').trim()==='')) w--;
+      const head=b[0].slice(0,w);
+      html+=`<div class="sum-card">${title?`<div class="sum-title">${esc(title)}</div>`:''}<table class="sum-tbl"><thead><tr>`;
+      head.forEach(hd=>{ html+=`<th>${esc(hd)}</th>`; });
+      html+='</tr></thead><tbody>';
+      b.slice(1).forEach(r=>{
+        html+='<tr>'+head.map((hd,i)=>sumCellHtml(hd,r[i])).join('')+'</tr>';
+      });
+      html+='</tbody></table></div>';
+    });
+  } else {
+    html=computedSummaryHtml();   // лист пуст — считаем сами
+  }
+  sw.innerHTML=html;
+}
+
+// Сводка из данных шахматки: по группам работ и по видам работ
+function allCellsOf(w){
+  // все применимые ячейки работы БЕЗ учёта фильтров интерфейса
+  const unit=String(w['Единица приемки']||'').trim(), out=[];
+  if(unit==='Этаж секция'){
+    CONFIG.sections.forEach(s=>{
+      const sec=s['Секция'], a=parseInt(s['Этажи выше 0.000'])||0, b=parseInt(s['Этажи ниже 0.000'])||0;
+      for(let f=-b;f<=-1;f++) if(isWorkApplicable(w,sec,f)) out.push(getCell(sec,f,w['Вид работ']));
+      for(let f=1;f<=a;f++)   if(isWorkApplicable(w,sec,f)) out.push(getCell(sec,f,w['Вид работ']));
+    });
+  } else if(unit==='Секция'){
+    CONFIG.sections.forEach(s=>{ if(isWorkApplicable(w,s['Секция'],null)) out.push(getCell(s['Секция'],'',w['Вид работ'])); });
+  } else if(unit==='Площадка'){
+    out.push(getCell('','',w['Вид работ']));
+  }
+  return out;
+}
+function sumAggRow(label, cells){
+  const total=cells.length;
+  const done=cells.filter(c=>c.pct===100).length;
+  const prog=cells.filter(c=>c.pct>0&&c.pct<100).length;
+  const avg=total?Math.round(cells.reduce((a,c)=>a+c.pct,0)/total):0;
+  const dev=cells.reduce((m,c)=>c.dev!==null&&c.dev>m?c.dev:m,0);
+  return `<tr><td>${esc(label)}</td><td class="num">${total}</td><td class="num">${done}</td><td class="num">${prog}</td><td>${sumBar(avg)}</td>`+
+    `<td class="num"${dev>0?' style="color:#dc2626;font-weight:700;"':''}>${dev>0?'+'+dev+DAY_LBL[CURRENT_LANG]:'—'}</td></tr>`;
+}
+function computedSummaryHtml(){
+  const headRow=`<thead><tr><th></th><th>${t('total')}</th><th>${t('done')}</th><th>${t('inProg')}</th><th>${t('avgPct')}</th><th>${t('maxDev')}</th></tr></thead>`;
+  // по группам
+  const gorder=[];
+  CONFIG.works.forEach(w=>{ const g=String(w['Группа работ']||'').trim(); if(g&&!gorder.includes(g)) gorder.push(g); });
+  let h=`<div class="sum-card"><div class="sum-title">${t('sumByGroup')}</div><table class="sum-tbl">${headRow}<tbody>`;
+  gorder.forEach(g=>{
+    const cells=[];
+    CONFIG.works.filter(w=>String(w['Группа работ']||'').trim()===g).forEach(w=>cells.push(...allCellsOf(w)));
+    if(cells.length) h+=sumAggRow(groupLabel(g),cells);
   });
-  board.innerHTML=h+'</tbody>';
+  h+='</tbody></table></div>';
+  // по видам работ (в порядке: поэтажные → на секцию → на площадку)
+  h+=`<div class="sum-card"><div class="sum-title">${t('sumByWork')}</div><table class="sum-tbl">${headRow}<tbody>`;
+  ['Этаж секция','Секция','Площадка'].forEach(unit=>{
+    CONFIG.works.filter(w=>String(w['Единица приемки']||'').trim()===unit).forEach(w=>{
+      const cells=allCellsOf(w);
+      if(cells.length) h+=sumAggRow(workLabel(w),cells);
+    });
+  });
+  h+='</tbody></table></div>';
+  return h;
 }
 
 function getSections(){ return CONFIG.sections.filter(s=>FILTER_SEC.size===0||FILTER_SEC.has(String(s['Секция']))); }
@@ -1314,24 +1549,6 @@ function renderByWork(board){
   sub.innerHTML=sh;
 }
 
-function renderProgress(){
-  let html='';
-  CONFIG.works.filter(w=>w['Единица приемки']==='Этаж секция'&&inGroup(w)).forEach(w=>{
-    let total=0,done=0;
-    CONFIG.sections.forEach(s=>{
-      const a=parseInt(s['Этажи выше 0.000'])||0, b=parseInt(s['Этажи ниже 0.000'])||0;
-      for(let f=a;f>=1;f--){ if(!isWorkApplicable(w,s['Секция'],f))continue;total++;if(getPct(s['Секция'],f,w['Вид работ'])===100)done++; }
-      for(let f=-1;f>=-b;f--){ if(!isWorkApplicable(w,s['Секция'],f))continue;total++;if(getPct(s['Секция'],f,w['Вид работ'])===100)done++; }
-    });
-    const pct=total?Math.round(done/total*100):0;
-    html+=`<div class="prog-item">
-      <div class="prog-lbl">${esc(workLabel(w))}</div>
-      <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
-      <div class="prog-pct">${pct}%</div>
-    </div>`;
-  });
-  document.getElementById('progWrap').innerHTML=html;
-}
 
 // Статусбар: считаем по ВСЕМ применимым ячейкам (как прогресс-бары),
 // без деления 1–99% на «в работе»/«частично» — всё это просто «в работе»
