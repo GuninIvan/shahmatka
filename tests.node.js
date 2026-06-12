@@ -23,10 +23,10 @@ global.fetch = () => Promise.reject(new Error('no network in tests'));
 // как у обычных <script> в браузере. После кода — экспорт функций
 // в globalThis, т.к. const из eval наружу не виден.
 {
-  const code = ['cells.js', 'gantt.js', 'tasks.js', 'summary.js']
+  const code = ['cells.js', 'gantt.js', 'tasks.js', 'summary.js', 'prep.js']
     .map(f => fs.readFileSync(__dirname + '/' + f, 'utf8')).join('\n');
   const exports = ['makeKey','parseDev','normalizeDate','parseDate','fmtShort',
-                   'taskTarget','isWorkApplicable','splitSummaryGrid','sumPctVal'];
+                   'taskTarget','isWorkApplicable','splitSummaryGrid','sumPctVal','parseGate','prepPhaseStatus'];
   (0, eval)(code + '\n' + exports.map(n => `globalThis.${n}=${n};`).join(''));
 }
 
@@ -139,6 +139,31 @@ check('1 → 100',              () => assert.strictEqual(sumPctVal('1'), 100));
 check('15 → 15',              () => assert.strictEqual(sumPctVal('15'), 15));
 check('пусто → null',         () => assert.strictEqual(sumPctVal(''), null));
 check('текст → null',         () => assert.strictEqual(sumPctVal('нет'), null));
+
+// ── parseGate: ворота «Фронт открыт» / «Контракт заключен» ──
+console.log('parseGate');
+check('TRUE → true',            () => assert.strictEqual(parseGate(true), true));
+check('FALSE → false',          () => assert.strictEqual(parseGate(false), false));
+check('0 от VLOOKUP → false',   () => assert.strictEqual(parseGate(0), false));
+check('"0" → false',            () => assert.strictEqual(parseGate('0'), false));
+check('"" → null (не настроено)',() => assert.strictEqual(parseGate(''), null));
+check('undefined → null',       () => assert.strictEqual(parseGate(undefined), null));
+check('"TRUE" строкой → true',  () => assert.strictEqual(parseGate('TRUE'), true));
+
+// ── prepPhaseStatus: статусы фаз РД/Тендер/Контракт ──
+console.log('prepPhaseStatus');
+const today = new Date(); today.setHours(0,0,0,0);
+const dmy = dd => { const x=new Date(today.getTime()+dd*86400000);
+  return String(x.getDate()).padStart(2,'0')+'.'+String(x.getMonth()+1).padStart(2,'0')+'.'+x.getFullYear(); };
+const ph = (ready,start,due,dur) => ({'РД / Готовность':ready,'РД / Начало работ':start,'РД / Дата готовности':due,'РД / Длительность':dur});
+check('готово → ok даже если просрочено', () => assert.strictEqual(prepPhaseStatus(ph(true, dmy(-100), dmy(-10), 90),'РД').st, 'ok'));
+check('дедлайн прошёл → late',  () => {
+  const p=prepPhaseStatus(ph('', dmy(-100), dmy(-10), 90),'РД');
+  assert.strictEqual(p.st,'late'); assert.strictEqual(p.lateDays,10);
+});
+check('старт прошёл, дедлайн впереди → run', () => assert.strictEqual(prepPhaseStatus(ph('', dmy(-5), dmy(30), 35),'РД').st, 'run'));
+check('старт впереди → idle',   () => assert.strictEqual(prepPhaseStatus(ph('', dmy(5), dmy(40), 35),'РД').st, 'idle'));
+check('ничего не настроено → none', () => assert.strictEqual(prepPhaseStatus(ph('', '', '', ''),'РД').st, 'none'));
 
 // ── Итог ──
 console.log('\n' + (fail ? '✗ ПРОВАЛЕНО: ' + fail + ' из ' + (pass + fail) : '✓ Все ' + pass + ' тестов прошли'));

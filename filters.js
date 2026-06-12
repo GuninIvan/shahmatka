@@ -21,7 +21,7 @@ function updateSectionUi(){
     FILTER_SEC.clear();
     if(MODE === 'section'){
       MODE = 'work';
-      ['sec','work','gantt','tasks','sum'].forEach(m=>{
+      ['sec','work','gantt','tasks','sum','prep'].forEach(m=>{
         const el=document.getElementById('mode-'+m);
         if(el) el.classList.toggle('on', m==='work');
       });
@@ -155,6 +155,7 @@ function setMode(m){
   document.getElementById('mode-gantt').classList.toggle('on',m==='gantt');
   document.getElementById('mode-tasks').classList.toggle('on',m==='tasks');
   document.getElementById('mode-sum').classList.toggle('on',m==='summary');
+  document.getElementById('mode-prep').classList.toggle('on',m==='prep');
   render();
 }
 
@@ -171,6 +172,7 @@ function buildViewPanel(){
     ['dstart',t('showStart')],
     ['dend',  t('showEnd')],
     ['dev',   t('showDev')],
+    ['crew',  t('showCrew')],
     ['sec',   t('showSec')],
     ['fl',    t('showFloor')]
   ];

@@ -12,10 +12,13 @@ function render(){
   const gw=document.getElementById('ganttWrap');
   const sw=document.getElementById('sumWrap');
   const tw=document.getElementById('tasksWrap');
+  const pw=document.getElementById('prepWrap');
   if(MODE!=='work')    sub.innerHTML='';
   if(MODE!=='gantt'){  gw.innerHTML='';  } gw.style.display = MODE==='gantt' ?'block':'none';
   if(MODE!=='summary'){sw.innerHTML='';  } sw.style.display = MODE==='summary'?'block':'none';
   if(MODE!=='tasks'){  tw.innerHTML='';  } tw.style.display = MODE==='tasks' ?'block':'none';
+  if(MODE!=='prep'){   pw.innerHTML='';  } pw.style.display = MODE==='prep'  ?'block':'none';
+  if(MODE==='prep'){ board.style.display='none'; board.innerHTML=''; empty.style.display='none'; renderPrep(pw); return; }
   if(MODE==='summary'){ board.style.display='none'; board.innerHTML=''; empty.style.display='none'; renderSummary(sw,empty); return; }
   if(!CONFIG.sections.length){board.style.display='none';empty.style.display='flex';return;}
   empty.style.display='none';

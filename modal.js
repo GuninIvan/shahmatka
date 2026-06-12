@@ -12,9 +12,33 @@ function openModal(sec,floor,work){
   const sub=[where];
   if(d.factDate) sub.push(`${t('factPrefix')} ${d.factDate}`);
   else if(d.planDate) sub.push(`${t('planPrefix')} ${d.planDate}`);
+  // Статусы фронта/контракта — сразу видно, ПОЧЕМУ нельзя начинать
+  if(d.front===false){
+    const pr=(d.predReady!==null)?` (${t('predLbl')}: ${d.predReady}%)`:'';
+    sub.push(`🔒 ${t('frontClosed')}${pr}`);
+  }
+  if(d.contract===false) sub.push(`⚠ ${t('noContract')}`);
   document.getElementById('moSub').textContent=sub.join('  ');
   document.getElementById('pctSl').value=d.pct;
   document.getElementById('pctBig').textContent=d.pct+'%';
+
+  // ── Калькулятор численности (для начальника участка) ──
+  // Из таблицы: объём, выработка, требуется людей к сроку.
+  // Ввод «людей фактически» → мгновенный прогноз: успеваем или нет.
+  // Чистая математика на клиенте, в базу ничего не пишется.
+  CUR_RES=null;
+  const cb=document.getElementById('crewBlock');
+  if(d.found && !  (d.pct===100) && d.vol && d.rate){
+    const info=[`${t('volume')}: ${d.vol} ${esc(d.unit)}`,
+                `${t('rateLbl')}: ${d.rate} ${esc(d.unit)}${t('perDay')}`];
+    if(d.crew) info.push(`${t('crewNeed')}: 👷${d.crew}`);
+    document.getElementById('crewInfo').textContent=info.join('  ·  ');
+    document.getElementById('crewInp').value=d.crew||'';
+    document.getElementById('crewHint').textContent='';
+    CUR_RES={vol:d.vol, rate:d.rate, pct:d.pct, startDate:d.startDate, planDate:d.planDate, crew:d.crew};
+    cb.style.display='';
+    updCrew();
+  } else cb.style.display='none';
 
   // Право редактирования: без пароля (или с ролью Читатель) — только просмотр
   const editable=canEdit(sec, work);
@@ -32,6 +56,28 @@ function closeModal(e){
 }
 function updPct(v){document.getElementById('pctBig').textContent=v+'%';}
 function setPct(v){document.getElementById('pctSl').value=v;document.getElementById('pctBig').textContent=v+'%';}
+
+// ── Калькулятор «что будет при N людях» ──────────────────────────
+// Остаток объёма / (выработка × людей) = сколько смен ещё нужно.
+// Прогноз окончания = сегодня + смены; сравниваем с датой план.
+let CUR_RES=null;
+function updCrew(){
+  const out=document.getElementById('crewHint');
+  if(!CUR_RES){ out.textContent=''; return; }
+  const n=parseInt(document.getElementById('crewInp').value)||0;
+  if(n<=0){ out.textContent=''; out.className='crew-hint'; return; }
+  const restVol=CUR_RES.vol*(100-CUR_RES.pct)/100;
+  const daysNeed=Math.ceil(restVol/(CUR_RES.rate*n));
+  const today=new Date(); today.setHours(0,0,0,0);
+  const finish=new Date(today.getTime()+daysNeed*86400000);
+  const finStr=String(finish.getDate()).padStart(2,'0')+'.'+String(finish.getMonth()+1).padStart(2,'0');
+  const plan=parseDate(CUR_RES.planDate);
+  const dy=DAY_LBL[CURRENT_LANG]||'д';
+  if(!plan){ out.textContent=`→ ${finStr} (${daysNeed}${dy})`; out.className='crew-hint'; return; }
+  const diff=Math.round((finish-plan)/86400000);
+  if(diff<=0){ out.textContent=`✓ ${t('crewOk')} → ${finStr}`; out.className='crew-hint ok'; }
+  else       { out.textContent=`✗ ${t('crewLate')} +${diff}${dy} → ${finStr}`; out.className='crew-hint late'; }
+}
 
 // ── SAVE ─────────────────────────────────────────────────────────
 function saveCell(){

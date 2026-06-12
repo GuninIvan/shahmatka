@@ -69,6 +69,32 @@ function renderTasks(tw){
     <span class="tk-grp">${gchip('floor',t('gByFloor'))}${gchip('work',t('gByWork'))}${gchip('group',t('gByGroup'))}</span>
   </div>`;
 
+  // ── Риски ──────────────────────────────────────────────────────
+  // 1) «Горит, фронт закрыт»: по сроку работать уже надо (есть цель),
+  //    а предшественник не готов. Это срыв планирования, не подрядчика.
+  // 2) «Контракт не заключён»: задания этой работы уже в списке,
+  //    а договора нет.
+  const noFront=items.filter(i=>i.d.front===false);
+  const noContrWorks=[...new Set(items.filter(i=>i.d.contract===false).map(i=>i.w['Вид работ']))];
+  if(noFront.length||noContrWorks.length){
+    h+=`<div class="risk-card">`;
+    if(noFront.length){
+      h+=`<div class="risk-line"><b>🔒 ${t('riskNoFront')} · ${noFront.length}</b></div>`;
+      h+=`<div class="risk-items">`+noFront.slice(0,12).map(i=>{
+        const pr=(i.d.predReady!==null)?` ${i.d.predReady}%`:'';
+        return `<span class="risk-it">${esc(workLabel(i.w))} · ${esc(i.label)}${pr}</span>`;
+      }).join('')+(noFront.length>12?` <span class="risk-it">+${noFront.length-12}…</span>`:'')+`</div>`;
+    }
+    if(noContrWorks.length){
+      h+=`<div class="risk-line"><b>⚠ ${t('noContract')} · ${noContrWorks.length}</b></div>`;
+      h+=`<div class="risk-items">`+noContrWorks.map(n=>{
+        const w=CONFIG.works.find(x=>x['Вид работ']===n);
+        return `<span class="risk-it">${esc(w?workLabel(w):n)}</span>`;
+      }).join('')+`</div>`;
+    }
+    h+=`</div>`;
+  }
+
   // Единая сетка колонок для ВСЕХ таблиц групп: иначе каждая таблица
   // считает ширины сама и колонки «едут» друг относительно друга.
   // Название работы — резиновое (переносится), остальные — фиксированные.
@@ -93,7 +119,7 @@ function renderTasks(tw){
         :`<td class="tk-num tk-gap-ok">✓ ${t('onTrack')}</td>`;
       h+=`<tr class="clk" data-sec="${esc(i.sec)}" data-floor="${esc(String(i.floor))}" data-work="${esc(i.w['Вид работ'])}">
         <td>${dot}${esc(workLabel(i.w))}</td>
-        <td class="tk-place">${esc(i.label)}</td>
+        <td class="tk-place">${i.d.front===false?'🔒 ':''}${esc(i.label)}</td>
         <td class="tk-dates">${esc(fmtShort(i.d.startDate)||'')} → ${esc(fmtShort(i.d.planDate)||'')}</td>
         <td class="tk-num">${i.d.pct}%</td>
         <td class="tk-num" style="color:var(--acc);font-weight:700;">→${i.target}%</td>

@@ -4,7 +4,29 @@
 // ── KEY / DATA ────────────────────────────────────────────────────
 function makeKey(sec,floor,work){ return [String(sec||''),String(floor||''),String(work||'')].join('|||'); }
 function getPct(sec,floor,work){ return DATA[makeKey(sec,floor,work)]?.pct||0; }
-function getCell(sec,floor,work){ return DATA[makeKey(sec,floor,work)]||{found:false,pct:0,updatedAt:'',startDate:'',planDate:'',factDate:'',dev:null}; }
+const EMPTY_CELL={found:false,pct:0,updatedAt:'',startDate:'',planDate:'',factDate:'',dev:null,
+                  front:null,contract:null,predReady:null,vol:null,rate:null,unit:'',crew:null};
+function getCell(sec,floor,work){ return DATA[makeKey(sec,floor,work)]||EMPTY_CELL; }
+
+// TRUE/FALSE из таблицы (чекбоксы, ВПР) → true/false; пусто/мусор → null.
+// null = «не настроено», нейтрально: не красим, пока колонку не заполнили.
+function parseBool(v){
+  if(v===true||v===false) return v;
+  const s=String(v??'').trim().toLowerCase();
+  if(s==='true'||s==='истина'||s==='да') return true;
+  if(s==='false'||s==='ложь'||s==='нет') return false;
+  return null;
+}
+// «Ворота» (Фронт открыт / Контракт заключен): формулы в таблице возвращают
+// TRUE, FALSE, 0 (VLOOKUP по пустому чекбоксу) или "" (строка-заглушка).
+// undefined → колонки нет вовсе (null = не настроено, рисков не рисуем);
+// всё прочее: «открыто/заключено» строго при TRUE, иначе false.
+function parseGate(v){
+  if(v===undefined) return null;
+  if(v===''||v===null) return null;
+  if(v===0||v==='0') return false;
+  return parseBool(v)===true;
+}
 // «Отставание» из таблицы → число дней или null.
 // Принимаем ТОЛЬКО чистое число (целое/дробное со знаком).
 // Дата ("2026-06-15"), текст, пустое → null, чтобы не показывать мусор
@@ -92,9 +114,22 @@ function cellHtml(sec,floor,work,colspan){
     else dim=true;
   }
 
-  const trParts=[startLabel?`<div class="c-date">${esc(startLabel)}</div>`:'',
+  // Фронт работ / контракт: только для незавершённых.
+  // front===false → 🔒 и штриховка; contract===false → ⚠.
+  // null (колонки не заполнены) — нейтрально, ничего не рисуем.
+  const noFront    = d.found && !isDone && d.front===false;
+  const noContract = d.found && !isDone && d.contract===false;
+  let flagHtml='';
+  if(noFront)    flagHtml+=`<div class="c-flag nofront" title="${esc(t('frontClosed'))}">🔒</div>`;
+  if(noContract) flagHtml+=`<div class="c-flag nocontract" title="${esc(t('noContract'))}">⚠</div>`;
+
+  // Численность (требуется людей к сроку) — тумблер «Люди» в панели «Вид»
+  const crewHtml=(SHOW.crew && d.found && !isDone && d.crew)?`<div class="c-date">👷${d.crew}</div>`:'';
+
+  const trParts=[flagHtml,
+                 startLabel?`<div class="c-date">${esc(startLabel)}</div>`:'',
                  endLabel?`<div class="c-date">${esc(endLabel)}</div>`:'',
-                 devHtml, targetHtml].join('');
+                 crewHtml, devHtml, targetHtml].join('');
   const trEl = trParts ? `<div class="c-topright">${trParts}</div>` : '';
 
   const pctTxt = SHOW.pct ? (isEmpty?'—':d.pct+'%') : '';
@@ -117,7 +152,7 @@ function cellHtml(sec,floor,work,colspan){
   const tdStyle=wc?` style="background:${hexA(wc,0.13)}"`:'';
 
   return `<td class="cell${isDone?' done':''}${dim?' dim':''}" data-sec="${esc(String(sec))}" data-floor="${esc(String(floor))}" data-work="${esc(String(work))}"${cs}${tdStyle}>
-    <div class="ci"${tint?` style="background:${tint}"`:''}>${topRow}${botRow}${barHtml}</div>
+    <div class="ci${noFront?' ci-nofront':''}"${tint?` style="background:${tint}"`:''}>${topRow}${botRow}${barHtml}</div>
   </td>`;
 }
 

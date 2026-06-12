@@ -138,6 +138,7 @@ function applyLang(){
   document.getElementById('mode-gantt').textContent    = t('byGantt');
   document.getElementById('mode-tasks').textContent    = t('byTasks');
   document.getElementById('mode-sum').textContent      = t('bySummary');
+  document.getElementById('mode-prep').textContent     = t('byPrep');
   document.getElementById('ui-deadlineLbl').textContent= t('deadlineLbl');
   document.getElementById('ui-showBtn').textContent    = t('showBtn');
   document.getElementById('ui-sectionLbl').textContent = t('sectionLbl');
@@ -145,6 +146,7 @@ function applyLang(){
   document.getElementById('ui-groupLbl').textContent   = t('groupLbl');
   document.getElementById('ui-workLbl').textContent    = t('workLbl');
   document.getElementById('ui-pctLabel').textContent   = t('pctLabel');
+  document.getElementById('ui-crewFact').textContent   = t('crewFact');
   document.getElementById('ui-cancel').textContent     = t('cancel');
   document.getElementById('saveBtn').textContent       = t('save');
   document.getElementById('ui-loading').textContent    = t('loading');
@@ -164,7 +166,7 @@ let DATA   = {};
 let SUMMARY= [];
 let MODE   = 'section';
 // «Что показывать» в ячейке (галочки), хранится в localStorage
-let SHOW = { pct:true, dstart:false, dend:true, dev:true, sec:true, fl:true };
+let SHOW = { pct:true, dstart:false, dend:true, dev:true, sec:true, fl:true, crew:false };
 try{ const s=JSON.parse(localStorage.getItem('shk_show')||'null'); if(s) SHOW=Object.assign(SHOW,s);}catch(e){}
 let DEADLINE = null;   // режим «к дате»: Date или null
 let FILTER_SEC   = new Set();
@@ -331,7 +333,14 @@ async function loadAll(){
         startDate:normalizeDate(r['Дата начала']),
         planDate: normalizeDate(r['Дата план']),
         factDate: normalizeDate(r['Дата факт']),
-        dev:      parseDev(r['Отставание'])
+        dev:      parseDev(r['Отставание']),
+        front:    parseGate(r['Фронт открыт']),
+        contract: parseGate(r['Контракт заключен']),
+        predReady:parseDev(r['Готовность предшественника']),   // % или null («не назначен»)
+        vol:      parseFloat(r['Объем'])||null,
+        rate:     parseFloat(r['Выработка'])||null,
+        unit:     String(r['Ед.изм']||''),
+        crew:     parseInt(r['Численность'])||null
       };
     });
     buildFilters();
