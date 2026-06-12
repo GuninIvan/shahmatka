@@ -117,8 +117,9 @@ function cellHtml(sec,floor,work,colspan){
   // Фронт работ / контракт: только для незавершённых.
   // front===false → 🔒 и штриховка; contract===false → ⚠.
   // null (колонки не заполнены) — нейтрально, ничего не рисуем.
-  const noFront    = d.found && !isDone && d.front===false;
-  const noContract = d.found && !isDone && d.contract===false;
+  // Тумблеры SHOW.front / SHOW.contract (панель «Вид») гасят индикаторы.
+  const noFront    = SHOW.front    && d.found && !isDone && d.front===false;
+  const noContract = SHOW.contract && d.found && !isDone && d.contract===false;
   let flagHtml='';
   if(noFront)    flagHtml+=`<div class="c-flag nofront" title="${esc(t('frontClosed'))}">🔒</div>`;
   if(noContract) flagHtml+=`<div class="c-flag nocontract" title="${esc(t('noContract'))}">✍</div>`;
@@ -138,10 +139,13 @@ function cellHtml(sec,floor,work,colspan){
     ${trEl}
   </div>`;
 
-  // Метки секции/этажа: на ВСЕХ ячейках (если включены в панели «Вид»)
-  const showBot = (SHOW.sec || SHOW.fl) && (String(sec)!==''||String(floor)!=='');
+  // Метки секции/этажа: на ВСЕХ ячейках (если включены в панели «Вид»).
+  // Объём (тумблер SHOW.vol) — той же нижней строкой: «150 м³».
+  const volTxt=(SHOW.vol && d.found && d.vol)?(d.vol+(d.unit?' '+d.unit:'')):'';
+  const showBot = ((SHOW.sec || SHOW.fl) && (String(sec)!==''||String(floor)!=='')) || !!volTxt;
   const botRow=showBot?`<div class="ci-bot">
     ${(SHOW.sec&&String(sec)!=='')?`<div class="c-sec">${sl}${esc(String(sec))}</div>`:'<div></div>'}
+    ${volTxt?`<div class="c-vol">${esc(volTxt)}</div>`:''}
     ${(SHOW.fl&&floor!=='')?`<div class="c-fl">${fl}${esc(String(floor))}</div>`:''}
   </div>`:'';
 

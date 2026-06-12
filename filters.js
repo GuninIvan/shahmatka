@@ -168,13 +168,16 @@ function buildViewPanel(){
   const p=document.getElementById('viewPanel');
   if(!p) return;
   const items=[
-    ['pct',   t('showPct')],
-    ['dstart',t('showStart')],
-    ['dend',  t('showEnd')],
-    ['dev',   t('showDev')],
-    ['crew',  t('showCrew')],
-    ['sec',   t('showSec')],
-    ['fl',    t('showFloor')]
+    ['pct',     t('showPct')],
+    ['dstart',  t('showStart')],
+    ['dend',    t('showEnd')],
+    ['dev',     t('showDev')],
+    ['crew',    t('showCrew')],
+    ['vol',     t('showVol')],
+    ['front',   t('showFront')],
+    ['contract',t('showContract')],
+    ['sec',     t('showSec')],
+    ['fl',      t('showFloor')]
   ];
   p.innerHTML = items.map(([k,lbl])=>
     `<label class="vp-item"><input type="checkbox" data-show="${k}"${SHOW[k]?' checked':''}>${esc(lbl)}</label>`

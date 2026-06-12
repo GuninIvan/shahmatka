@@ -166,7 +166,8 @@ let DATA   = {};
 let SUMMARY= [];
 let MODE   = 'section';
 // «Что показывать» в ячейке (галочки), хранится в localStorage
-let SHOW = { pct:true, dstart:false, dend:true, dev:true, sec:true, fl:true, crew:false };
+let SHOW = { pct:true, dstart:false, dend:true, dev:true, crew:false, vol:false,
+             front:true, contract:true, sec:true, fl:true };
 try{ const s=JSON.parse(localStorage.getItem('shk_show')||'null'); if(s) SHOW=Object.assign(SHOW,s);}catch(e){}
 let DEADLINE = null;   // режим «к дате»: Date или null
 let FILTER_SEC   = new Set();
@@ -208,9 +209,12 @@ window.onload = async () => {
 function saveName(v){ userName=v.trim(); localStorage.setItem('shk_name',userName); }
 
 // Делегирование кликов: ячейки и чипы секций без inline-onclick —
-// названия работ с кавычками/апострофами больше ничего не ломают
+// названия работ с кавычками/апострофами больше ничего не ломают.
+// Слушатель на #bwrap (не #board): режим «По виду работ» рисует
+// под-таблицы «на секцию»/«на площадку» в #subBoards — он тоже внутри.
+// Чужие клики не задеваем: prep/tasks/gantt не используют td.cell.
 function initDelegation(){
-  document.getElementById('board').addEventListener('click', e => {
+  document.getElementById('bwrap').addEventListener('click', e => {
     const td = e.target.closest('td.cell');
     if(!td || td.classList.contains('na')) return;
     openModal(td.dataset.sec, td.dataset.floor, td.dataset.work);

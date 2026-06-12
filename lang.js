@@ -74,6 +74,9 @@ const LANG = {
     showDev:        'Отставание',
     showSec:        'Секция',
     showFloor:      'Этаж',
+    showVol:        'Объём',
+    showFront:      'Фронт работ 🔒',
+    showContract:   'Контракт ✍',
     deadlineLbl:    'К дате:',
 
     // Вход / роли
@@ -202,6 +205,9 @@ const LANG = {
     showDev:        'Kašnjenje',
     showSec:        'Sekcija',
     showFloor:      'Sprat',
+    showVol:        'Obim',
+    showFront:      'Front radova 🔒',
+    showContract:   'Ugovor ✍',
     deadlineLbl:    'Do datuma:',
 
     // Prijava / uloge
@@ -330,6 +336,9 @@ const LANG = {
     showDev:        'Lag',
     showSec:        'Section',
     showFloor:      'Floor',
+    showVol:        'Volume',
+    showFront:      'Work front 🔒',
+    showContract:   'Contract ✍',
     deadlineLbl:    'By date:',
 
     // Login / roles
