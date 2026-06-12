@@ -119,7 +119,7 @@ function cellHtml(sec,floor,work,colspan){
   // null (колонки не заполнены) — нейтрально, ничего не рисуем.
   // Тумблеры SHOW.front / SHOW.contract (панель «Вид») гасят индикаторы.
   const noFront    = SHOW.front    && d.found && !isDone && d.front===false;
-  const noContract = SHOW.contract && d.found && !isDone && d.contract===false;
+  const noContract = PRIV && SHOW.contract && d.found && !isDone && d.contract===false;
   let flagHtml='';
   if(noFront)    flagHtml+=`<div class="c-flag nofront" title="${esc(t('frontClosed'))}">🔒</div>`;
   if(noContract) flagHtml+=`<div class="c-flag nocontract" title="${esc(t('noContract'))}">✍</div>`;

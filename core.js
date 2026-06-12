@@ -196,6 +196,10 @@ let CUR    = null;
 let userName  = '';
 let USER      = null;    // {name, role, sections} после входа по паролю
 let OPEN_MODE = false;   // true, если в таблице нет листа «Роли» — доступ всем
+// Допуск к контрактной информации (вкладки «Сводка»/«Подготовка», флаг ✍).
+// Решает СЕРВЕР по токену (роли «Генподряд»/«Заказчик» или открытый режим)
+// и режет данные сам; флаг приходит в ответе action=all и правит только UI.
+let PRIV = true;
 
 // ── INIT ─────────────────────────────────────────────────────────
 window.onload = async () => {
@@ -266,6 +270,7 @@ async function doLogin(){
     USER = j;
     renderUserArea();
     toast('👤 '+j.name,'ok');
+    loadAll();   // допуск мог измениться — сервер отдаст данные под новую роль
   } catch(e){ toast(t('errorSave'),'err'); logError('doLogin', e.message); }
 }
 
@@ -276,6 +281,7 @@ function logout(){
   localStorage.removeItem('shk_pass');
   USER = null;
   renderUserArea();
+  loadAll();   // без токена сервер контрактную информацию не отдаст
 }
 
 // Может ли пользователь редактировать данную работу на данной секции.
@@ -321,8 +327,9 @@ function renderUserArea(){
 async function loadAll(){
   setSt('spin',t('loading')); showLoader(t('loadingSheets'));
   try {
-    const j = await apiFetch({action:'all'});
+    const j = await apiFetch({action:'all', token: localStorage.getItem('shk_token')||''});
     if(j.error) throw new Error(j.error);
+    PRIV = (j.priv !== false);   // старый сервер без поля priv = всё видно
     const cfg = j.config || {};
     SUMMARY = j.summary || [];
     CONFIG.works    = cfg.works    || [];

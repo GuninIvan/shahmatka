@@ -4,10 +4,29 @@
 // ── FILTERS ──────────────────────────────────────────────────────
 function buildFilters(){
   updateSectionUi();
+  updatePrivUi();
   rebuildSecChips();
   rebuildCutFilter();
   rebuildGroupFilter();
   rebuildWorkFilter();
+}
+
+// Без допуска к контрактам (PRIV=false, решает сервер): прячем вкладки
+// «Сводка» и «Подготовка» и чекбокс «Контракт ✍» в панели «Вид».
+// Данные сервер уже срезал — здесь только косметика интерфейса.
+function updatePrivUi(){
+  ['mode-sum','mode-prep'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display = PRIV ? '' : 'none';
+  });
+  if(!PRIV && (MODE==='summary'||MODE==='prep')){
+    MODE='work';
+    ['sec','work','gantt','tasks','sum','prep'].forEach(m=>{
+      const el=document.getElementById('mode-'+m);
+      if(el) el.classList.toggle('on', m==='work');
+    });
+  }
+  buildViewPanel();   // состав чекбоксов зависит от PRIV
 }
 
 // Одна секция → режим «По секции» и чипы секций не нужны (визуальный
@@ -178,7 +197,7 @@ function buildViewPanel(){
     ['contract',t('showContract')],
     ['sec',     t('showSec')],
     ['fl',      t('showFloor')]
-  ];
+  ].filter(([k])=> PRIV || k!=='contract');   // ✍ — только с допуском
   p.innerHTML = items.map(([k,lbl])=>
     `<label class="vp-item"><input type="checkbox" data-show="${k}"${SHOW[k]?' checked':''}>${esc(lbl)}</label>`
   ).join('');

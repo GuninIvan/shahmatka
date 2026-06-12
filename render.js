@@ -71,7 +71,8 @@ function computeRisks(DL){
         noFront.push({w, label, predReady:d.predReady});
       }
       // контракт: старт уже ≤ выбранной даты, а договора нет
-      if(d.contract===false && d.pct<100){
+      // (PRIV: без допуска сервер поле не отдаёт; проверка — подстраховка)
+      if(PRIV && d.contract===false && d.pct<100){
         const sd=parseDate(d.startDate);
         if(sd && sd<=DL){
           const prev=noContractMap.get(name);

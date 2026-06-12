@@ -17,7 +17,7 @@ function openModal(sec,floor,work){
     const pr=(d.predReady!==null)?` (${t('predLbl')}: ${d.predReady}%)`:'';
     sub.push(`🔒 ${t('frontClosed')}${pr}`);
   }
-  if(d.contract===false) sub.push(`⚠ ${t('noContract')}`);
+  if(PRIV && d.contract===false) sub.push(`⚠ ${t('noContract')}`);
   document.getElementById('moSub').textContent=sub.join('  ');
   document.getElementById('pctSl').value=d.pct;
   document.getElementById('pctBig').textContent=d.pct+'%';
