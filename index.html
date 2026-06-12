@@ -109,10 +109,8 @@ table.sum-tbl{border-collapse:collapse;width:100%;}
 .sum-tbl td{font-size:11px;color:var(--ink1);padding:6px 12px;border-bottom:1px solid var(--brd);white-space:nowrap;}
 .sum-tbl tr:last-child td{border-bottom:none;}
 .sum-tbl td.num{font-family:var(--mono);text-align:right;}
-.sum-pb{display:inline-flex;align-items:center;gap:6px;}
-.sum-pb .tr{width:90px;height:7px;background:var(--bg);border-radius:4px;overflow:hidden;flex-shrink:0;}
-.sum-pb .fi{height:100%;border-radius:4px;}
-.sum-pb .tx{font-family:var(--mono);font-size:10px;color:var(--ink2);min-width:32px;text-align:right;}
+.sum-pct{font-family:var(--mono);font-size:11px;color:var(--ink1);}
+.sum-pct.plan{color:var(--ink3);}
 /* ── Сменно-суточные задания ── */
 #tasksWrap{padding:12px 16px 24px;max-width:1100px;}
 .tk-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
@@ -123,6 +121,8 @@ table.sum-tbl{border-collapse:collapse;width:100%;}
 .tk-sec-h{font-size:10.5px;font-weight:700;color:var(--acc);padding:7px 12px;border-bottom:2px solid var(--brd2);display:flex;gap:8px;align-items:center;}
 .tk-sec-h .n{color:var(--ink3);font-weight:400;}
 table.tk-tbl{border-collapse:collapse;width:100%;}
+.tk-tbl th{font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--ink3);text-align:left;padding:5px 12px;border-bottom:1px solid var(--brd);white-space:nowrap;}
+.tk-tbl th.tk-num{text-align:right;}
 .tk-tbl td{font-size:11px;padding:5px 12px;border-bottom:1px solid var(--brd);white-space:nowrap;color:var(--ink1);}
 .tk-tbl tr:last-child td{border-bottom:none;}
 .tk-tbl tr.clk{cursor:pointer;}
@@ -322,9 +322,6 @@ td.cell.dim .ci{opacity:.35;filter:grayscale(.8);}
 </div>
 
 <div class="stb">
-  <div class="si"><span class="sn" id="sbTotal">0</span>&nbsp;<span id="ui-total"></span></div>
-  <div class="si"><span class="sn" id="sbDone" style="color:#16a34a">0</span>&nbsp;<span id="ui-done"></span></div>
-  <div class="si"><span class="sn" id="sbInProg" style="color:#ea580c">0</span>&nbsp;<span id="ui-inProg"></span></div>
   <div class="hint" id="ui-hint"></div>
 </div>
 
@@ -466,9 +463,6 @@ function applyLang(){
   document.getElementById('ui-pctLabel').textContent   = t('pctLabel');
   document.getElementById('ui-cancel').textContent     = t('cancel');
   document.getElementById('saveBtn').textContent       = t('save');
-  document.getElementById('ui-total').textContent      = t('total');
-  document.getElementById('ui-done').textContent       = t('done');
-  document.getElementById('ui-inProg').textContent     = t('inProg');
   document.getElementById('ui-loading').textContent    = t('loading');
   document.getElementById('ui-hint').textContent       = t('hint');
   document.title = t('title');
@@ -610,12 +604,12 @@ async function loadAll(){
     const [cfgRes, dataRes, sumRes] = await Promise.all([
       fetch(API+'?action=config&t='+Date.now()),
       fetch(API+'?action=data&t='+Date.now()),
-      fetch(API+'?action=summary&t='+Date.now())
+      fetch(API+'?action=summary&t='+Date.now()).catch(()=>null)   // сводка опциональна
     ]);
     const cfg = await cfgRes.json();
     const dat = await dataRes.json();
     let   sum = {rows:[]};
-    try{ sum = await sumRes.json(); }catch(e){}
+    try{ if(sumRes) sum = await sumRes.json(); }catch(e){}
     if(cfg.error) throw new Error(cfg.error);
     if(dat.error) throw new Error(dat.error);   // ошибка чтения базы больше не глотается
     SUMMARY = (sum && !sum.error) ? (sum.grid || (sum.rows ? [Object.keys(sum.rows[0]||{}), ...sum.rows.map(r=>Object.values(r))] : [])) : [];
@@ -914,7 +908,8 @@ function cellHtml(sec,floor,work,colspan){
     ${trEl}
   </div>`;
 
-  const showBot = (!isEmpty || (d.dev!==null&&d.dev>0)) && (SHOW.sec || SHOW.fl) && (String(sec)!==''||String(floor)!=='');
+  // Метки секции/этажа: на ВСЕХ ячейках (если включены в панели «Вид»)
+  const showBot = (SHOW.sec || SHOW.fl) && (String(sec)!==''||String(floor)!=='');
   const botRow=showBot?`<div class="ci-bot">
     ${(SHOW.sec&&String(sec)!=='')?`<div class="c-sec">${sl}${esc(String(sec))}</div>`:'<div></div>'}
     ${(SHOW.fl&&floor!=='')?`<div class="c-fl">${fl}${esc(String(floor))}</div>`:''}
@@ -1214,7 +1209,10 @@ function renderTasks(tw){
   if(!items.length){
     h+=`<div class="sum-card" style="padding:18px;font-size:12px;color:var(--ink3);">${t('noTasks')}</div>`;
   } else groups.forEach(g=>{
-    h+=`<div class="tk-sec"><div class="tk-sec-h">${esc(g.label)} <span class="n">· ${g.items.length}</span></div><table class="tk-tbl"><tbody>`;
+    h+=`<div class="tk-sec"><div class="tk-sec-h">${esc(g.label)} <span class="n">· ${g.items.length}</span></div><table class="tk-tbl"><thead><tr>`+
+       `<th>${esc(t('colWork'))}</th><th>${esc(t('colPlace'))}</th><th>${esc(t('colDates'))}</th>`+
+       `<th class="tk-num">${esc(t('colFact'))}</th><th class="tk-num">${esc(t('colTarget'))}</th><th class="tk-num">${esc(t('colStatus'))}</th>`+
+       `</tr></thead><tbody>`;
     g.items.forEach(i=>{
       const wc=workColor(i.w['Вид работ']);
       const dot=wc?`<span class="tk-wdot" style="background:${wc}"></span>`:'';
@@ -1256,7 +1254,7 @@ function render(){
   if(MODE!=='gantt'){  gw.innerHTML='';  } gw.style.display = MODE==='gantt' ?'block':'none';
   if(MODE!=='summary'){sw.innerHTML='';  } sw.style.display = MODE==='summary'?'block':'none';
   if(MODE!=='tasks'){  tw.innerHTML='';  } tw.style.display = MODE==='tasks' ?'block':'none';
-  if(MODE==='summary'){ board.style.display='none'; board.innerHTML=''; empty.style.display='none'; renderSummary(sw,empty); renderSB(); return; }
+  if(MODE==='summary'){ board.style.display='none'; board.innerHTML=''; empty.style.display='none'; renderSummary(sw,empty); return; }
   if(!CONFIG.sections.length){board.style.display='none';empty.style.display='flex';return;}
   empty.style.display='none';
   if(MODE==='gantt'){
@@ -1269,7 +1267,6 @@ function render(){
     board.style.display='table';
     MODE==='section' ? renderBySection(board) : renderByWork(board);
   }
-  renderSB();
 }
 
 // ── Сводка: лист «Сводка» из Google как есть ─────────────────────
@@ -1277,9 +1274,10 @@ function render(){
 // Лист «Сводка» может содержать несколько таблиц (по группам, по видам
 // работ), разделённых пустыми строками. Каждая рисуется карточкой.
 // Если листа нет или он пуст — сводка считается из данных шахматки.
+// Процент в сводке: просто число, без прогресс-бара.
+// gray=true — плановый процент, приглушённый.
 function sumBar(pct,gray){
-  const c = gray ? '#9aa3af' : (pct>=100 ? '#2f9e44' : `hsl(${Math.round(Math.min(pct,99)/99*60)},75%,46%)`);
-  return `<span class="sum-pb"><span class="tr"><span class="fi" style="width:${Math.min(pct,100)}%;background:${c}"></span></span><span class="tx">${pct}%</span></span>`;
+  return `<span class="sum-pct${gray?' plan':''}">${pct}%</span>`;
 }
 // Числовое значение процента: понимает и «15 %», и долю 0–1 (0.0671 → 7)
 function sumPctVal(raw){
@@ -1585,30 +1583,7 @@ function renderByWork(board){
 }
 
 
-// Статусбар: считаем по ВСЕМ применимым ячейкам (как прогресс-бары),
-// без деления 1–99% на «в работе»/«частично» — всё это просто «в работе»
-function renderSB(){
-  let total=0,done=0,inProg=0;
-  const count=pct=>{ total++; if(pct===100)done++; else if(pct>0)inProg++; };
-  CONFIG.works.forEach(w=>{
-    if(w['Единица приемки']==='Этаж секция'){
-      CONFIG.sections.forEach(s=>{
-        const a=parseInt(s['Этажи выше 0.000'])||0, b=parseInt(s['Этажи ниже 0.000'])||0;
-        for(let f=a;f>=1;f--){ if(isWorkApplicable(w,s['Секция'],f)) count(getPct(s['Секция'],f,w['Вид работ'])); }
-        for(let f=-1;f>=-b;f--){ if(isWorkApplicable(w,s['Секция'],f)) count(getPct(s['Секция'],f,w['Вид работ'])); }
-      });
-    } else if(w['Единица приемки']==='Секция'){
-      CONFIG.sections.forEach(s=>{
-        if(isWorkApplicable(w,s['Секция'],null)) count(getPct(s['Секция'],'',w['Вид работ']));
-      });
-    } else if(w['Единица приемки']==='Площадка'){
-      count(getPct('','',w['Вид работ']));   // одна ячейка на весь объект
-    }
-  });
-  document.getElementById('sbTotal').textContent=total;
-  document.getElementById('sbDone').textContent=done;
-  document.getElementById('sbInProg').textContent=inProg;
-}
+// Статусбар-счётчик удалён по требованию: внизу осталась только подсказка.
 
 // ── MODAL ─────────────────────────────────────────────────────────
 function openModal(sec,floor,work){

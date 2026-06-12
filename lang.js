@@ -22,6 +22,13 @@ const LANG = {
     gByGroup:       'По группам',
     onTrack:        'в графике',
     noTasks:        'Нет заданий к этой дате',
+    // Задания — шапка столбцов
+    colWork:        'Работа',
+    colPlace:       'Место',
+    colDates:       'Сроки',
+    colFact:        'Факт',
+    colTarget:      'Цель',
+    colStatus:      'Статус',
     avgPct:         'Средний %',
     maxDev:         'Макс. отставание',
     sumByGroup:     'Сводка по группам работ',
@@ -38,7 +45,6 @@ const LANG = {
     showSec:        'Секция',
     showFloor:      'Этаж',
     deadlineLbl:    'К дате:',
-    noSummary:      'Лист «Сводка» не найден в таблице',
 
     // Вход / роли
     passHolder:     'Пароль…',
@@ -51,14 +57,11 @@ const LANG = {
 
     // Фильтры
     sectionLbl:     'Секция:',
-    floorLbl:       'Этаж:',
     groupLbl:       'Группа:',
     workLbl:        'Вид работ:',
     allSections:    'Все',
-    allFloors:      'Все этажи',
     allGroups:      'Все группы',
     allWorks:       'Все работы',
-    onlySecWorks:   'Работы на секцию',
 
     // Шахматка — заголовки
     sectionPrefix:  'Секция',
@@ -66,7 +69,6 @@ const LANG = {
     worksAbove:     'Работы выше 0.000',
     worksBelow:     'Работы ниже 0.000',
     workOnSec:      'Работа на секцию',
-    onSec:          'на сек.',
     cutLbl:         'Разрез:',
     allCuts:        'Весь разрез',
     onSecOpt:       'На секцию',
@@ -106,7 +108,7 @@ const LANG = {
   sr: {
     // Topbar
     title:          'Šahmatka prijema',
-    refresh:        '↻ Osvježi',
+    refresh:        '↻ Osveži',
     yourName:       'Vaše ime…',
     bySection:      'Po sekciji',
     byWork:         'Po vrsti radova',
@@ -119,6 +121,12 @@ const LANG = {
     gByGroup:       'Po grupama',
     onTrack:        'po planu',
     noTasks:        'Nema zadataka do ovog datuma',
+    colWork:        'Rad',
+    colPlace:       'Mesto',
+    colDates:       'Rokovi',
+    colFact:        'Stvarno',
+    colTarget:      'Cilj',
+    colStatus:      'Status',
     avgPct:         'Prosečan %',
     maxDev:         'Maks. kašnjenje',
     sumByGroup:     'Pregled po grupama radova',
@@ -135,7 +143,6 @@ const LANG = {
     showSec:        'Sekcija',
     showFloor:      'Sprat',
     deadlineLbl:    'Do datuma:',
-    noSummary:      'List „Сводка" nije pronađen u tabeli',
 
     // Prijava / uloge
     passHolder:     'Lozinka…',
@@ -148,14 +155,11 @@ const LANG = {
 
     // Filteri
     sectionLbl:     'Sekcija:',
-    floorLbl:       'Sprat:',
     groupLbl:       'Grupa:',
     workLbl:        'Vrsta radova:',
     allSections:    'Sve',
-    allFloors:      'Svi spratovi',
     allGroups:      'Sve grupe',
     allWorks:       'Svi radovi',
-    onlySecWorks:   'Radovi na sekciji',
 
     // Šahmatka — naslovi
     sectionPrefix:  'Sekcija',
@@ -163,7 +167,6 @@ const LANG = {
     worksAbove:     'Radovi iznad 0.000',
     worksBelow:     'Radovi ispod 0.000',
     workOnSec:      'Rad na sekciji',
-    onSec:          'na sek.',
     cutLbl:         'Presek:',
     allCuts:        'Ceo presek',
     onSecOpt:       'Na sekciju',
@@ -177,7 +180,7 @@ const LANG = {
     pctLabel:       'Procenat izvršenja',
     save:           'Sačuvaj',
     cancel:         'Otkaži',
-    factPrefix:     '✓ Fakt:',
+    factPrefix:     '✓ Završeno:',
     planPrefix:     'Plan:',
 
     // Statusi / tosti
@@ -216,6 +219,12 @@ const LANG = {
     gByGroup:       'By group',
     onTrack:        'on track',
     noTasks:        'No tasks for this date',
+    colWork:        'Work',
+    colPlace:       'Location',
+    colDates:       'Dates',
+    colFact:        'Actual',
+    colTarget:      'Target',
+    colStatus:      'Status',
     avgPct:         'Avg %',
     maxDev:         'Max lag',
     sumByGroup:     'Summary by work group',
@@ -232,7 +241,6 @@ const LANG = {
     showSec:        'Section',
     showFloor:      'Floor',
     deadlineLbl:    'By date:',
-    noSummary:      'Sheet "Сводка" not found in the spreadsheet',
 
     // Login / roles
     passHolder:     'Password…',
@@ -245,14 +253,11 @@ const LANG = {
 
     // Filters
     sectionLbl:     'Section:',
-    floorLbl:       'Floor:',
     groupLbl:       'Group:',
     workLbl:        'Work type:',
     allSections:    'All',
-    allFloors:      'All floors',
     allGroups:      'All groups',
     allWorks:       'All works',
-    onlySecWorks:   'Section works',
 
     // Grid — headers
     sectionPrefix:  'Section',
@@ -260,7 +265,6 @@ const LANG = {
     worksAbove:     'Works above 0.000',
     worksBelow:     'Works below 0.000',
     workOnSec:      'Section works',
-    onSec:          'on sec.',
     cutLbl:         'View by:',
     allCuts:        'Everything',
     onSecOpt:       'Per section',
