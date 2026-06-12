@@ -46,9 +46,15 @@ function ganttChildren(w){
   return out;
 }
 
-// Агрегат по детям: интервал = min старт … max план, % = средний, отставание = худшее
+// Агрегат по детям: интервал = min старт … max план, % = средний.
+// Отставание свёрнутой строки — НЕ худший этаж (раньше один отстающий
+// этаж красил всю строку), а «средний % против ожидаемого»:
+// ожидаемый % = доля прошедшего времени интервала старт→план;
+// разница переводится в дни, чтобы работала общая цветовая шкала
+// (cellBarColor). Опережающие этажи компенсируют отстающие:
+// суммарно в графике → строка зелёная, суммарно отстаёт → красная.
 function ganttAgg(w, kids){
-  let start=null, plan=null, pctSum=0, n=0, dev=null;
+  let start=null, plan=null, pctSum=0, n=0;
   kids.forEach(k=>{
     const d=getCell(k.sec,k.floor,w['Вид работ']);
     k.d=d;
@@ -56,9 +62,16 @@ function ganttAgg(w, kids){
     if(s&&(!start||s<start)) start=s;
     if(p&&(!plan ||p>plan))  plan=p;
     pctSum+=d.pct; n++;
-    if(d.dev!==null && (dev===null||d.dev>dev)) dev=d.dev;
   });
-  return {start, plan, pct:n?Math.round(pctSum/n):0, dev, n};
+  const pct=n?Math.round(pctSum/n):0;
+  let dev=null;   // null = нет дат/готово → цвет по проценту
+  if(start&&plan&&plan>start&&pct<100){
+    const today=new Date(); today.setHours(0,0,0,0);
+    const total=(plan-start)/G_DAY;
+    const expected=Math.max(0,Math.min(100,(today-start)/G_DAY/total*100));
+    dev=Math.round((expected-pct)/100*total);   // дни: >0 отстаёт, ≤0 в графике
+  }
+  return {start, plan, pct, dev, n};
 }
 
 function ganttBar(x,wd,d,clkAttrs,isChild){

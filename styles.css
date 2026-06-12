@@ -340,6 +340,16 @@ table.prep-tbl{border-collapse:collapse;width:100%;}
 /* ── Подготовка: группы и клик-редактирование ── */
 .prep-grp{margin-bottom:12px;}
 .pp-clk{cursor:pointer;}
+/* Карточка подготовки: строки таблицы кликабельны, фазы — блоками */
+.prep-tbl tbody tr{cursor:pointer;}
+.prep-tbl tbody tr:hover .pp-work{background:var(--bg3);}
+.pm-ph{border:1px solid var(--brd);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:5px;}
+.pm-ph-top{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.pm-ph-name{font-size:12px;font-weight:600;color:var(--ink);}
+.pm-dates{font-family:var(--mono);font-size:11px;color:var(--ink2);}
+.pm-btn{align-self:flex-start;}
+.pm-startline{font-size:11.5px;color:var(--ink2);padding-top:2px;}
+#prepModal .mo-title .dot{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:7px;}
 .pp-clk:hover{outline:2px solid var(--acc);outline-offset:-2px;}
 
 /* ── Сводка: единая сетка колонок + комментарий ── */

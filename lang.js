@@ -47,7 +47,10 @@ const LANG = {
     predLbl:        'предшественник',
     riskNoFront:    'Фронт закрыт',
     risksTitle:     'Риски',
-    prepClickHint:  'Клик — переключить «Готово»',
+    prepClickHint:  'Клик — карточка подготовки',
+    prepMarkReady:  'Отметить готовым',
+    prepMarkUnready:'Снять готовность',
+    prepNone:       'не настроено',
     colIssues:      'Комментарий',
 
     // Ресурсы
@@ -178,7 +181,10 @@ const LANG = {
     predLbl:        'prethodnik',
     riskNoFront:    'Front zatvoren',
     risksTitle:     'Rizici',
-    prepClickHint:  'Klik — promeni „Gotovo”',
+    prepClickHint:  'Klik — kartica pripreme',
+    prepMarkReady:  'Označi kao gotovo',
+    prepMarkUnready:'Poništi gotovo',
+    prepNone:       'nije podešeno',
     colIssues:      'Komentar',
 
     // Resursi
@@ -309,7 +315,10 @@ const LANG = {
     predLbl:        'predecessor',
     riskNoFront:    'Front closed',
     risksTitle:     'Risks',
-    prepClickHint:  'Click to toggle Ready',
+    prepClickHint:  'Click — preparation card',
+    prepMarkReady:  'Mark as done',
+    prepMarkUnready:'Unmark done',
+    prepNone:       'not set',
     colIssues:      'Comment',
 
     // Resources
