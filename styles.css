@@ -233,6 +233,33 @@ td.cell.dim .ci{opacity:.35;filter:grayscale(.8);}
 
 /* ── Адаптив под телефон ─────────────────────────────────────── */
 @media (max-width: 720px){
+  /* «Задания»: на узком экране фиксированные колонки таблицы не
+     помещаются — переключаемся на карточную раскладку строки:
+     1-я строка — работа, 2-я — место, 3-я — сроки + факт + цель + отставание */
+  .tk-tbl colgroup, .tk-tbl thead{display:none;}
+  .tk-tbl, .tk-tbl tbody{display:block;width:100%;}
+  .tk-tbl tr{
+    display:grid;
+    grid-template-columns:1fr auto auto auto;
+    grid-template-areas:
+      "work  work  work   work"
+      "place place place  place"
+      "dates fact  target lag";
+    gap:2px 12px;
+    padding:8px 12px;
+    border-bottom:1px solid var(--brd);
+  }
+  .tk-tbl tr:last-child{border-bottom:none;}
+  .tk-tbl td{display:block;padding:0;border-bottom:none;white-space:normal;overflow-wrap:break-word;}
+  .tk-tbl td:nth-child(1){grid-area:work;font-weight:600;}
+  .tk-tbl td:nth-child(2){grid-area:place;}
+  .tk-tbl td:nth-child(3){grid-area:dates;align-self:center;}
+  .tk-tbl td:nth-child(4){grid-area:fact;align-self:center;}
+  .tk-tbl td:nth-child(5){grid-area:target;align-self:center;}
+  .tk-tbl td:nth-child(6){grid-area:lag;align-self:center;}
+}
+
+@media (max-width: 720px){
   body{height:auto;min-height:100vh;overflow:visible;}  /* скроллится вся страница */
   .topbar{height:auto;flex-wrap:wrap;gap:6px 8px;padding:8px 10px;}
   .topbar .sep{display:none;}
