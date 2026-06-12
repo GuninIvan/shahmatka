@@ -3,10 +3,30 @@
 
 // ── FILTERS ──────────────────────────────────────────────────────
 function buildFilters(){
+  updateSectionUi();
   rebuildSecChips();
   rebuildCutFilter();
   rebuildGroupFilter();
   rebuildWorkFilter();
+}
+
+// Одна секция → режим «По секции» и чипы секций не нужны (визуальный
+// мусор): прячем. Появится вторая секция в таблице — вернутся сами.
+function updateSectionUi(){
+  const multi = CONFIG.sections.length > 1;
+  document.querySelectorAll('.secui').forEach(el=>{ el.style.display = multi ? '' : 'none'; });
+  const btn = document.getElementById('mode-sec');
+  if(btn) btn.style.display = multi ? '' : 'none';
+  if(!multi){
+    FILTER_SEC.clear();
+    if(MODE === 'section'){
+      MODE = 'work';
+      ['sec','work','gantt','tasks','sum'].forEach(m=>{
+        const el=document.getElementById('mode-'+m);
+        if(el) el.classList.toggle('on', m==='work');
+      });
+    }
+  }
 }
 
 // ── Мультиселект (кнопка + панель с галочками) ──────────────────

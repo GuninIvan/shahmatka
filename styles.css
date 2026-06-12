@@ -113,9 +113,11 @@ table.sum-tbl{border-collapse:collapse;width:100%;}
 .tk-sec{background:var(--bg2);border:1px solid var(--brd);border-radius:8px;margin-bottom:12px;overflow:auto;}
 .tk-sec-h{font-size:10.5px;font-weight:700;color:var(--acc);padding:7px 12px;border-bottom:2px solid var(--brd2);display:flex;gap:8px;align-items:center;}
 .tk-sec-h .n{color:var(--ink3);font-weight:400;}
-table.tk-tbl{border-collapse:collapse;width:100%;}
-.tk-tbl th{font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--ink3);text-align:left;padding:5px 12px;border-bottom:1px solid var(--brd);white-space:nowrap;}
+table.tk-tbl{border-collapse:collapse;width:100%;table-layout:fixed;}
+.tk-tbl th{font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--ink3);text-align:left;padding:5px 12px;border-bottom:1px solid var(--brd);white-space:nowrap;overflow:hidden;}
 .tk-tbl th.tk-num{text-align:right;}
+.tk-tbl td:first-child{white-space:normal;overflow-wrap:break-word;}
+.tk-place{white-space:normal !important;overflow-wrap:break-word;}
 .tk-tbl td{font-size:11px;padding:5px 12px;border-bottom:1px solid var(--brd);white-space:nowrap;color:var(--ink1);}
 .tk-tbl tr:last-child td{border-bottom:none;}
 .tk-tbl tr.clk{cursor:pointer;}

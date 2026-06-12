@@ -69,10 +69,16 @@ function renderTasks(tw){
     <span class="tk-grp">${gchip('floor',t('gByFloor'))}${gchip('work',t('gByWork'))}${gchip('group',t('gByGroup'))}</span>
   </div>`;
 
+  // Единая сетка колонок для ВСЕХ таблиц групп: иначе каждая таблица
+  // считает ширины сама и колонки «едут» друг относительно друга.
+  // Название работы — резиновое (переносится), остальные — фиксированные.
+  const colg=`<colgroup><col><col style="width:21%"><col style="width:128px">`+
+             `<col style="width:64px"><col style="width:64px"><col style="width:104px"></colgroup>`;
+
   if(!items.length){
     h+=`<div class="sum-card" style="padding:18px;font-size:12px;color:var(--ink3);">${t('noTasks')}</div>`;
   } else groups.forEach(g=>{
-    h+=`<div class="tk-sec"><div class="tk-sec-h">${esc(g.label)} <span class="n">· ${g.items.length}</span></div><table class="tk-tbl"><thead><tr>`+
+    h+=`<div class="tk-sec"><div class="tk-sec-h">${esc(g.label)} <span class="n">· ${g.items.length}</span></div><table class="tk-tbl">${colg}<thead><tr>`+
        `<th>${esc(t('colWork'))}</th><th>${esc(t('colPlace'))}</th><th>${esc(t('colDates'))}</th>`+
        `<th class="tk-num">${esc(t('colFact'))}</th><th class="tk-num">${esc(t('colTarget'))}</th><th class="tk-num">${esc(t('colStatus'))}</th>`+
        `</tr></thead><tbody>`;
