@@ -79,8 +79,11 @@ function renderTasks(tw){
     g.items.forEach(i=>{
       const wc=workColor(i.w['Вид работ']);
       const dot=wc?`<span class="tk-wdot" style="background:${wc}"></span>`:'';
-      const gapTd=i.gap>0
-        ?`<td class="tk-num tk-gap-bad">−${i.gap}%</td>`
+      // Статус: дни отставания из колонки «Отставание» Google-таблицы
+      // (d.dev). Отстаём → красное «+N д», иначе зелёное «в графике».
+      const dy=DAY_LBL[CURRENT_LANG]||'д';
+      const gapTd=(i.d.dev!==null && i.d.dev>0)
+        ?`<td class="tk-num tk-gap-bad">+${i.d.dev}${dy}</td>`
         :`<td class="tk-num tk-gap-ok">✓ ${t('onTrack')}</td>`;
       h+=`<tr class="clk" data-sec="${esc(i.sec)}" data-floor="${esc(String(i.floor))}" data-work="${esc(i.w['Вид работ'])}">
         <td>${dot}${esc(workLabel(i.w))}</td>

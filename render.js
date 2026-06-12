@@ -3,6 +3,7 @@
 
 // ── RENDER ────────────────────────────────────────────────────────
 function render(){
+  saveFilters();   // фильтры переживают перезагрузку страницы
   const dl = document.getElementById('deadlineInp').value;   // yyyy-mm-dd
   DEADLINE = dl ? new Date(dl+'T23:59:59') : null;
   const board=document.getElementById('board');

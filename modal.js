@@ -44,17 +44,15 @@ function saveCell(){
   DATA[savedCUR.key].pct=pctNew;
   closeModal(); render(); setSt('spin',t('saving'));
   const now=new Date();
-  const p=new URLSearchParams({
+  apiFetch({
     action:'update',
     section:String(savedCUR.sec),
     floor:String(savedCUR.floor),
     work:savedCUR.work,
-    pct:String(pctNew),
-    pass:localStorage.getItem('shk_pass')||'',
+    pct:pctNew,
+    token:localStorage.getItem('shk_token')||'',
     who:OPEN_MODE?(userName||t('anonymous')):''
-  });
-  fetch(API+'?'+p.toString())
-  .then(r=>r.json())
+  })
   .then(j=>{
     if(j.error)throw new Error(j.error);
     if(DATA[savedCUR.key])DATA[savedCUR.key].updatedAt=j.updatedAt||'';
@@ -71,6 +69,8 @@ function saveCell(){
               : m==='work_denied'    ? t('noWorkAccess')
               : t('errorSave');
     setSt('err',msg); toast(msg,'err',4000);
+    if(!['no_access','read_only','section_denied','work_denied'].includes(m))
+      logError('saveCell', m||'network');
   });
 }
 

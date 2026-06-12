@@ -227,6 +227,7 @@ td.cell.dim .ci{opacity:.35;filter:grayscale(.8);}
 .toast.ok{background:#f0fdf4;border:1px solid #bbf7d0;color:#15803d;}
 .toast.err{background:#fef2f2;border:1px solid #fecaca;color:#dc2626;}
 .toast.inf{background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;}
+.toast.warn{background:#fefce8;border:1px solid #fde68a;color:#a16207;max-width:340px;white-space:normal;}
 
 /* ── Адаптив под телефон ─────────────────────────────────────── */
 @media (max-width: 720px){

@@ -3,6 +3,49 @@
 
 const API = 'https://script.google.com/macros/s/AKfycbzEXg-pV4xOZmZ0uEmlcrJwbf3L9yCxkHkS9G_Tvm8omk6d3q24iyClcKFWcZ7-FjfXVw/exec';
 
+// ── ТРАНСПОРТ ────────────────────────────────────────────────────
+// Всё общение с сервером — POST с телом text/plain (JSON):
+// пароль/токен не попадают в URL, логи и историю браузера.
+// Таймаут 15 с + до 2 повторов с паузой — для плохой связи на стройке.
+// Повторы безопасны: и чтение, и запись процента идемпотентны.
+async function apiFetch(payload, opts){
+  const retries = (opts && opts.retries !== undefined) ? opts.retries : 2;
+  const timeout = (opts && opts.timeout) || 15000;
+  let lastErr;
+  for(let attempt = 0; attempt <= retries; attempt++){
+    const ctrl = new AbortController();
+    const tm = setTimeout(()=>ctrl.abort(), timeout);
+    try {
+      const r = await fetch(API, { method:'POST', body: JSON.stringify(payload), signal: ctrl.signal });
+      clearTimeout(tm);
+      return await r.json();
+    } catch(e) {
+      clearTimeout(tm);
+      lastErr = e;
+      if(attempt < retries) await new Promise(res=>setTimeout(res, 1200*(attempt+1)));
+    }
+  }
+  throw lastErr;
+}
+
+// ── ЛОГ ОШИБОК ───────────────────────────────────────────────────
+// Ошибки клиента улетают на сервер в лист «Лог ошибок».
+// Не больше 5 за сессию, отправка fire-and-forget без повторов.
+let ERR_SENT = 0;
+function logError(where, msg){
+  try {
+    if(ERR_SENT >= 5) return;
+    ERR_SENT++;
+    apiFetch({
+      action:'log', where:String(where), msg:String(msg).slice(0,500),
+      who: (USER && USER.name) || userName || '',
+      ua: navigator.userAgent
+    }, {retries:0, timeout:8000}).catch(()=>{});
+  } catch(e) {}
+}
+window.addEventListener('error', e => logError('window', e.message + ' @ ' + (e.filename||'') + ':' + (e.lineno||'')));
+window.addEventListener('unhandledrejection', e => logError('promise', (e.reason && e.reason.message) || String(e.reason)));
+
 // ── ЦВЕТ полоски ─────────────────────────────────────────────────
 // Запасной вариант (нет данных об отставании): по проценту
 // 0% → серый трек, 1–99% → красный→жёлтый, 100% → зелёный
@@ -128,6 +171,24 @@ let FILTER_SEC   = new Set();
 let FILTER_CUT   = new Set();   // «Разрез»: номера этажей (строки), '__sec__', '__site__'; пусто = всё
 let FILTER_WORK  = new Set();   // выбранные виды работ (русские ID); пусто = все
 let FILTER_GROUP = new Set();   // выбранные группы; пусто = все
+// Фильтры запоминаются между сессиями (прораб своей секции не выбирает её заново).
+// Несуществующие значения вычищаются в rebuild*-функциях после загрузки конфига.
+try{
+  const f = JSON.parse(localStorage.getItem('shk_filters')||'null');
+  if(f){
+    FILTER_SEC   = new Set(f.sec||[]);
+    FILTER_CUT   = new Set(f.cut||[]);
+    FILTER_GROUP = new Set(f.grp||[]);
+    FILTER_WORK  = new Set(f.wrk||[]);
+  }
+}catch(e){}
+function saveFilters(){
+  try{
+    localStorage.setItem('shk_filters', JSON.stringify({
+      sec:[...FILTER_SEC], cut:[...FILTER_CUT], grp:[...FILTER_GROUP], wrk:[...FILTER_WORK]
+    }));
+  }catch(e){}
+}
 let CUR    = null;
 let userName  = '';
 let USER      = null;    // {name, role, sections} после входа по паролю
@@ -164,18 +225,26 @@ function initDelegation(){
 }
 
 // ── АВТОРИЗАЦИЯ ──────────────────────────────────────────────────
-async function tryLogin(pass){
-  const r = await fetch(API+'?action=login&pass='+encodeURIComponent(pass||'')+'&t='+Date.now());
-  return r.json();
-}
-
+// Пароль уходит на сервер один раз при входе; в ответ приходит токен,
+// который хранится в localStorage и используется во всех запросах.
 async function initAuth(){
   try {
-    const pass = localStorage.getItem('shk_pass') || '';
-    const j = await tryLogin(pass);
-    if(j.open){ OPEN_MODE = true; USER = null; }
-    else if(j.name){ USER = j; }
-    else { USER = null; if(pass) localStorage.removeItem('shk_pass'); }
+    const token = localStorage.getItem('shk_token') || '';
+    const oldPass = localStorage.getItem('shk_pass') || '';   // миграция со старой схемы
+    let j = null;
+    if(token)        j = await apiFetch({action:'login', token});
+    else if(oldPass) j = await apiFetch({action:'login', pass: oldPass});
+    else             j = await apiFetch({action:'login'});
+    if(j && j.open){ OPEN_MODE = true; USER = null; }
+    else if(j && j.name){
+      USER = j;
+      if(j.token) localStorage.setItem('shk_token', j.token);
+      localStorage.removeItem('shk_pass');                    // пароль больше не храним
+    } else {
+      USER = null;
+      if(token) localStorage.removeItem('shk_token');
+      if(oldPass) localStorage.removeItem('shk_pass');
+    }
   } catch(e){ USER = null; }
   renderUserArea();
 }
@@ -185,16 +254,19 @@ async function doLogin(){
   const pass = (inp && inp.value || '').trim();
   if(!pass) return;
   try {
-    const j = await tryLogin(pass);
+    const j = await apiFetch({action:'login', pass});
     if(j.error || !j.name){ toast(t('wrongPass'),'err'); return; }
-    localStorage.setItem('shk_pass', pass);
+    if(j.token) localStorage.setItem('shk_token', j.token);
     USER = j;
     renderUserArea();
     toast('👤 '+j.name,'ok');
-  } catch(e){ toast(t('errorSave'),'err'); }
+  } catch(e){ toast(t('errorSave'),'err'); logError('doLogin', e.message); }
 }
 
 function logout(){
+  const token = localStorage.getItem('shk_token');
+  if(token) apiFetch({action:'logout', token}, {retries:0}).catch(()=>{});
+  localStorage.removeItem('shk_token');
   localStorage.removeItem('shk_pass');
   USER = null;
   renderUserArea();
@@ -239,25 +311,18 @@ function renderUserArea(){
 }
 
 // ── LOAD ─────────────────────────────────────────────────────────
+// Один запрос action=all вместо трёх: один холодный старт Apps Script.
 async function loadAll(){
   setSt('spin',t('loading')); showLoader(t('loadingSheets'));
   try {
-    const [cfgRes, dataRes, sumRes] = await Promise.all([
-      fetch(API+'?action=config&t='+Date.now()),
-      fetch(API+'?action=data&t='+Date.now()),
-      fetch(API+'?action=summary&t='+Date.now()).catch(()=>null)   // сводка опциональна
-    ]);
-    const cfg = await cfgRes.json();
-    const dat = await dataRes.json();
-    let   sum = {rows:[]};
-    try{ if(sumRes) sum = await sumRes.json(); }catch(e){}
-    if(cfg.error) throw new Error(cfg.error);
-    if(dat.error) throw new Error(dat.error);   // ошибка чтения базы больше не глотается
-    SUMMARY = (sum && !sum.error) ? (sum.grid || (sum.rows ? [Object.keys(sum.rows[0]||{}), ...sum.rows.map(r=>Object.values(r))] : [])) : [];
+    const j = await apiFetch({action:'all'});
+    if(j.error) throw new Error(j.error);
+    const cfg = j.config || {};
+    SUMMARY = j.summary || [];
     CONFIG.works    = cfg.works    || [];
     CONFIG.sections = cfg.sections || [];
     DATA = {};
-    (dat.rows||[]).forEach(r => {
+    (j.rows||[]).forEach(r => {
       const k = makeKey(r['Секция'], r['Этаж'], r['Вид работ']);
       DATA[k] = {
         found:    true,
@@ -273,9 +338,14 @@ async function loadAll(){
     render();
     setSt('ok', t('loaded')+' · '+new Date().toLocaleTimeString('ru'));
     toast(t('loaded'),'ok');
+    // Предупреждения конфига (опечатки в таблице) — жёлтым, подольше
+    if(cfg.warnings && cfg.warnings.length){
+      toast('⚠ '+cfg.warnings.slice(0,5).join(' · ')+(cfg.warnings.length>5?' · …':''),'warn',9000);
+    }
   } catch(e) {
     setSt('err',e.message);
     toast('Ошибка: '+e.message,'err',4000);
+    logError('loadAll', e.message);
     document.getElementById('emptyState').style.display='flex';
     document.getElementById('board').style.display='none';
   }
