@@ -7,7 +7,8 @@
 //   «<Фаза> / Дата готовности»  — к какой дате фаза должна быть готова
 //   «<Фаза> / Длительность»     — дней на фазу
 // Математика дедлайнов — формулами в таблице (обратный отсчёт от первого
-// старта работ в БД); здесь только разбор и отображение.
+// старта работ в БД); здесь разбор, отображение и переключение «Готово»
+// кликом (пишется TRUE/FALSE в «Список работ» через action=prepUpdate).
 
 const PREP_PHASES = [
   {key:'РД',       lbl:'prepRd'},
@@ -35,7 +36,7 @@ function prepPhaseStatus(w, phase){
   return {st, start, due, dur, lateDays};
 }
 
-function prepCellHtml(w, phase){
+function prepCellHtml(w, wi, phase){
   const p = prepPhaseStatus(w, phase);
   if(p.st==='none') return `<td class="pp pp-none">—</td>`;
   const dates = [
@@ -48,7 +49,10 @@ function prepCellHtml(w, phase){
   if(p.st==='late') badge=`<span class="pp-badge late">+${p.lateDays}${DAY_LBL[CURRENT_LANG]||'д'} ${t('stLate')}</span>`;
   if(p.st==='run')  badge=`<span class="pp-badge run">${t('stRun')}</span>`;
   if(p.st==='idle') badge=`<span class="pp-badge idle">${t('stIdle')}</span>`;
-  return `<td class="pp pp-${p.st}">${badge}<div class="pp-dates">${esc(dates)}</div>${dur}</td>`;
+  // Редактирование: клик по ячейке переключает «Готово» (если есть права).
+  const editable = canEdit('', w['Вид работ']);
+  const clk = editable ? ` pp-clk" data-wi="${wi}" data-ph="${esc(phase)}" title="${esc(t('prepClickHint'))}` : '';
+  return `<td class="pp pp-${p.st}${clk}">${badge}<div class="pp-dates">${esc(dates)}</div>${dur}</td>`;
 }
 
 function toDmy(d){
@@ -57,42 +61,94 @@ function toDmy(d){
 
 function renderPrep(container){
   // Фильтры «Группа» и «Вид работ» действуют и здесь
-  const works = CONFIG.works.filter(w=>inGroup(w)&&workSelected(w));
+  const works = CONFIG.works
+    .map((w,wi)=>({w,wi}))
+    .filter(x=>inGroup(x.w)&&workSelected(x.w));
 
-  // Сортируем по дедлайну контракта (= старту работ): что горит — наверху
-  const rows = works.slice().sort((a,b)=>{
-    const da=parseDate(normalizeDate(a['Контракт / Дата готовности']));
-    const db=parseDate(normalizeDate(b['Контракт / Дата готовности']));
-    return (da?da.getTime():Infinity)-(db?db.getTime():Infinity);
+  // Группировка по «Группе работ»; внутри группы — горящие контракты сверху
+  const byGroup = new Map();
+  works.forEach(x=>{
+    const g = String(x.w['Группа работ']||'').trim() || '—';
+    if(!byGroup.has(g)) byGroup.set(g, []);
+    byGroup.get(g).push(x);
   });
+  const contractDue = x => {
+    const d = parseDate(normalizeDate(x.w['Контракт / Дата готовности']));
+    return d ? d.getTime() : Infinity;
+  };
+  const groups = [...byGroup.entries()].map(([g,items])=>{
+    items.sort((a,b)=>contractDue(a)-contractDue(b));
+    return {g, items, due: Math.min(...items.map(contractDue))};
+  }).sort((a,b)=>a.due-b.due);   // группы тоже: что горит — выше
 
-  // Риск-баннер: просроченные фазы
+  // Счётчик просроченных фаз
   let lateCnt=0;
-  rows.forEach(w=>PREP_PHASES.forEach(ph=>{ if(prepPhaseStatus(w,ph.key).st==='late') lateCnt++; }));
+  works.forEach(x=>PREP_PHASES.forEach(ph=>{ if(prepPhaseStatus(x.w,ph.key).st==='late') lateCnt++; }));
 
   let h='';
   h+=`<div class="prep-head"><b>${t('byPrep')}</b>`;
   if(lateCnt) h+=` <span class="risk-pill">⚠ ${t('stLate')}: ${lateCnt}</span>`;
   h+=`</div>`;
 
-  h+=`<div class="sum-card"><table class="prep-tbl"><thead><tr>`+
-     `<th class="pp-work">${esc(t('colWork'))}</th>`+
-     PREP_PHASES.map(ph=>`<th>${esc(t(ph.lbl))}</th>`).join('')+
-     `<th class="pp-start">${esc(t('prepStart'))}</th>`+
-     `</tr></thead><tbody>`;
-
-  rows.forEach(w=>{
-    const name = w['Вид работ'];
-    const wc = workColor(name);
-    const dot = `<span class="dot" style="background:${wc||'var(--brd2)'}"></span>`;
-    const startWork = normalizeDate(w['Контракт / Дата готовности']);   // = первый старт в БД
-    h+=`<tr>`+
-       `<td class="pp-work">${dot}${esc(workLabel(w))}</td>`+
-       PREP_PHASES.map(ph=>prepCellHtml(w, ph.key)).join('')+
-       `<td class="pp-start">${startWork?fmtShort(startWork):'—'}</td>`+
-       `</tr>`;
+  groups.forEach(grp=>{
+    h+=`<div class="sum-card prep-grp"><div class="tk-sec-h">${esc(groupLabel(grp.g))} <span class="n">· ${grp.items.length}</span></div>`;
+    h+=`<table class="prep-tbl"><thead><tr>`+
+       `<th class="pp-work">${esc(t('colWork'))}</th>`+
+       PREP_PHASES.map(ph=>`<th>${esc(t(ph.lbl))}</th>`).join('')+
+       `<th class="pp-start">${esc(t('prepStart'))}</th>`+
+       `</tr></thead><tbody>`;
+    grp.items.forEach(x=>{
+      const name = x.w['Вид работ'];
+      const wc = workColor(name);
+      const dot = `<span class="dot" style="background:${wc||'var(--brd2)'}"></span>`;
+      const startWork = normalizeDate(x.w['Контракт / Дата готовности']);   // = первый старт в БД
+      h+=`<tr>`+
+         `<td class="pp-work">${dot}${esc(workLabel(x.w))}</td>`+
+         PREP_PHASES.map(ph=>prepCellHtml(x.w, x.wi, ph.key)).join('')+
+         `<td class="pp-start">${startWork?esc(startWork):'—'}</td>`+   // дата старта — с годом
+         `</tr>`;
+    });
+    h+=`</tbody></table></div>`;
   });
 
-  h+=`</tbody></table></div>`;
   container.innerHTML=h;
+  container.onclick=prepClick;   // делегирование; перезапись свойства — без дублей
+}
+
+// ── Переключение «Готово» кликом ─────────────────────────────────
+function prepClick(e){
+  const td = e.target.closest('.pp-clk');
+  if(!td) return;
+  const w = CONFIG.works[parseInt(td.dataset.wi)];
+  const phase = td.dataset.ph;
+  if(!w || !PREP_PHASES.some(p=>p.key===phase)) return;
+  const cur = parseBool(w[phase+' / Готовность'])===true;
+  const next = !cur;
+
+  // Оптимистично: обновили локально, нарисовали, отправили; ошибка → откат
+  const fld = phase+' / Готовность';
+  const old = w[fld];
+  w[fld] = next;
+  render(); setSt('spin',t('saving'));
+
+  apiFetch({
+    action:'prepUpdate',
+    work: w['Вид работ'],
+    phase: phase,
+    ready: next,
+    token: localStorage.getItem('shk_token')||'',
+    who: OPEN_MODE?(userName||t('anonymous')):''
+  }).then(j=>{
+    if(j && j.success){ setSt('ok',t('saved')); toast(t('saved'),'ok'); }
+    else throw new Error((j&&j.error)||'error');
+  }).catch(err=>{
+    w[fld] = old; render();
+    const m = String(err.message||'');
+    const msg = m==='no_access'||m==='read_only' ? t('readOnly')
+              : m==='work_denied' ? t('noWorkAccess')
+              : m==='section_denied' ? t('noSecAccess')
+              : t('errorSave');
+    setSt('err',msg); toast(msg,'err',4000);
+    if(!['no_access','read_only','work_denied','section_denied'].includes(m)) logError('prepUpdate', m||'network');
+  });
 }

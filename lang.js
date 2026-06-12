@@ -45,7 +45,10 @@ const LANG = {
     frontClosed:    'Фронт закрыт',
     noContract:     'Контракт не заключён',
     predLbl:        'предшественник',
-    riskNoFront:    'Горит, фронт закрыт',
+    riskNoFront:    'Фронт закрыт',
+    risksTitle:     'Риски',
+    prepClickHint:  'Клик — переключить «Готово»',
+    colIssues:      'Комментарий',
 
     // Ресурсы
     showCrew:       'Люди',
@@ -170,7 +173,10 @@ const LANG = {
     frontClosed:    'Front zatvoren',
     noContract:     'Ugovor nije potpisan',
     predLbl:        'prethodnik',
-    riskNoFront:    'Gori, front zatvoren',
+    riskNoFront:    'Front zatvoren',
+    risksTitle:     'Rizici',
+    prepClickHint:  'Klik — promeni „Gotovo”',
+    colIssues:      'Komentar',
 
     // Resursi
     showCrew:       'Ljudi',
@@ -295,7 +301,10 @@ const LANG = {
     frontClosed:    'Front closed',
     noContract:     'No contract',
     predLbl:        'predecessor',
-    riskNoFront:    'Due, front closed',
+    riskNoFront:    'Front closed',
+    risksTitle:     'Risks',
+    prepClickHint:  'Click to toggle Ready',
+    colIssues:      'Comment',
 
     // Resources
     showCrew:       'Crew',

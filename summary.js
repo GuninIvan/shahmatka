@@ -66,7 +66,39 @@ function splitSummaryGrid(grid){
   });
   return tables;
 }
+// Проблемы по работам для колонки «Комментарий» сводки:
+// 🔒×N — N незавершённых ячеек с закрытым фронтом; ✍ — контракт не заключён.
+// Считается по DATA (ключ: секция|||этаж|||работа).
+function summaryIssues(){
+  const byWork=new Map();   // имя работы → {lock, noContract}
+  Object.keys(DATA).forEach(k=>{
+    const name=k.split('|||')[2]; if(!name) return;
+    const d=DATA[k];
+    let e=byWork.get(name); if(!e){ e={lock:0,noContract:false}; byWork.set(name,e); }
+    if(d.front===false && d.pct<100) e.lock++;
+    if(d.contract===false && d.pct<100) e.noContract=true;
+  });
+  const byGroup=new Map();  // группа → {lock, contractWorks:Set}
+  CONFIG.works.forEach(w=>{
+    const e=byWork.get(w['Вид работ']); if(!e) return;
+    const g=String(w['Группа работ']||'').trim()||'—';
+    let ge=byGroup.get(g); if(!ge){ ge={lock:0,contractWorks:new Set()}; byGroup.set(g,ge); }
+    ge.lock+=e.lock;
+    if(e.noContract) ge.contractWorks.add(w['Вид работ']);
+  });
+  return {byWork, byGroup};
+}
+function issueText(e){
+  if(!e) return '';
+  const parts=[];
+  if(e.lock) parts.push(`🔒×${e.lock}`);
+  if(e.noContract) parts.push(`✍ ${t('noContract')}`);
+  if(e.contractWorks && e.contractWorks.size) parts.push(`✍×${e.contractWorks.size}`);
+  return parts.join(' · ');
+}
+
 function renderSummary(sw,empty){
+  const issues=summaryIssues();
   let html='';
   if(SUMMARY.length){
     splitSummaryGrid(SUMMARY).forEach(b=>{
@@ -76,18 +108,31 @@ function renderSummary(sw,empty){
       }
       if(!b.length) return;
       const head=b[0];
+      const hs=head.map(x=>String(x).toLowerCase());
+      const workCol = hs.findIndex(x=>/вид работ|vrsta|work type/.test(x));
+      const groupCol= hs.findIndex(x=>/групп|grup|group/.test(x));
       // нет своего заголовка — даём по составу колонок
       if(!title){
-        const hs=head.map(x=>String(x).toLowerCase());
-        if(hs.some(x=>/вид работ|vrsta|work type/.test(x))) title=t('sumByWork');
-        else if(hs.some(x=>/групп|grup|group/.test(x)))     title=t('sumByGroup');
+        if(workCol>-1) title=t('sumByWork');
+        else if(groupCol>-1) title=t('sumByGroup');
       }
-      html+=`<div class="sum-card">${title?`<div class="sum-title">${esc(title)}</div>`:''}<table class="sum-tbl"><thead><tr>`;
+      // Единая сетка: имена — резиновые, числа — фиксированные,
+      // комментарий — фиксированный. Числовые колонки двух таблиц
+      // встают друг под другом, ничего не «едет».
+      const isNum=x=>/процент|отстав|percent|lag|kašnj|procen/.test(x);
+      let colg='<colgroup>'+hs.map(x=>isNum(x)?'<col class="c-num">':'<col class="c-name">').join('')+'<col class="c-cmt"></colgroup>';
+      html+=`<div class="sum-card">${title?`<div class="sum-title">${esc(title)}</div>`:''}<table class="sum-tbl">${colg}<thead><tr>`;
       head.forEach(hd=>{ html+=`<th>${esc(String(hd))}</th>`; });
+      html+=`<th>${esc(t('colIssues'))}</th>`;
       html+='</tr></thead><tbody>';
       b.slice(1).forEach((r,ri)=>{
         const prev=ri>0?b[ri]:null;   // b[ri] = предыдущая строка данных (b сдвинут на header)
-        html+='<tr>'+head.map((hd,i)=>sumCellHtml(hd,r[i],prev?prev[i]:null)).join('')+'</tr>';
+        // Комментарий: по виду работ — точные проблемы; по группе — агрегат
+        let issue='';
+        if(workCol>-1)       issue=issueText(issues.byWork.get(String(r[workCol]||'').trim()));
+        else if(groupCol>-1) issue=issueText(issues.byGroup.get(String(r[groupCol]||'').trim()));
+        html+='<tr>'+head.map((hd,i)=>sumCellHtml(hd,r[i],prev?prev[i]:null)).join('')
+             +`<td class="sum-issue">${issue}</td>`+'</tr>';
       });
       html+='</tbody></table></div>';
     });

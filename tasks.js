@@ -69,31 +69,8 @@ function renderTasks(tw){
     <span class="tk-grp">${gchip('floor',t('gByFloor'))}${gchip('work',t('gByWork'))}${gchip('group',t('gByGroup'))}</span>
   </div>`;
 
-  // ── Риски ──────────────────────────────────────────────────────
-  // 1) «Горит, фронт закрыт»: по сроку работать уже надо (есть цель),
-  //    а предшественник не готов. Это срыв планирования, не подрядчика.
-  // 2) «Контракт не заключён»: задания этой работы уже в списке,
-  //    а договора нет.
-  const noFront=items.filter(i=>i.d.front===false);
-  const noContrWorks=[...new Set(items.filter(i=>i.d.contract===false).map(i=>i.w['Вид работ']))];
-  if(noFront.length||noContrWorks.length){
-    h+=`<div class="risk-card">`;
-    if(noFront.length){
-      h+=`<div class="risk-line"><b>🔒 ${t('riskNoFront')} · ${noFront.length}</b></div>`;
-      h+=`<div class="risk-items">`+noFront.slice(0,12).map(i=>{
-        const pr=(i.d.predReady!==null)?` ${i.d.predReady}%`:'';
-        return `<span class="risk-it">${esc(workLabel(i.w))} · ${esc(i.label)}${pr}</span>`;
-      }).join('')+(noFront.length>12?` <span class="risk-it">+${noFront.length-12}…</span>`:'')+`</div>`;
-    }
-    if(noContrWorks.length){
-      h+=`<div class="risk-line"><b>⚠ ${t('noContract')} · ${noContrWorks.length}</b></div>`;
-      h+=`<div class="risk-items">`+noContrWorks.map(n=>{
-        const w=CONFIG.works.find(x=>x['Вид работ']===n);
-        return `<span class="risk-it">${esc(w?workLabel(w):n)}</span>`;
-      }).join('')+`</div>`;
-    }
-    h+=`</div>`;
-  }
+  // Риски («Фронт закрыт», «Контракт не заключён») теперь в общей
+  // сворачиваемой панели над всеми вкладками — см. render.js.
 
   // Единая сетка колонок для ВСЕХ таблиц групп: иначе каждая таблица
   // считает ширины сама и колонки «едут» друг относительно друга.

@@ -327,3 +327,28 @@ table.prep-tbl{border-collapse:collapse;width:100%;}
 .crew-hint{font-size:11.5px;font-weight:600;}
 .crew-hint.ok{color:#15803d;}
 .crew-hint.late{color:#dc2626;}
+
+/* ── Риск-панель (все вкладки, сворачиваемая) ── */
+.risk-hdr{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;font-size:11.5px;}
+.risk-hdr b{color:#b45309;}
+.risk-sum{font-family:var(--mono);font-size:11px;color:#b45309;}
+.risk-arr{margin-left:auto;color:#b45309;font-size:11px;}
+.risk-card.closed{padding:7px 12px;}
+.risk-card.closed .risk-hdr{margin:0;}
+
+/* ── Подготовка: группы и клик-редактирование ── */
+.prep-grp{margin-bottom:12px;}
+.pp-clk{cursor:pointer;}
+.pp-clk:hover{outline:2px solid var(--acc);outline-offset:-2px;}
+
+/* ── Сводка: единая сетка колонок + комментарий ── */
+.sum-tbl{table-layout:fixed;width:100%;}
+.sum-tbl col.c-num{width:104px;}
+.sum-tbl col.c-cmt{width:200px;}
+.sum-tbl td,.sum-tbl th{overflow-wrap:break-word;white-space:normal;}
+.sum-issue{font-size:10.5px;color:#b45309;font-family:var(--mono);}
+@media (max-width: 720px){
+  .sum-tbl col.c-num{width:58px;}
+  .sum-tbl col.c-cmt{width:110px;}
+  .sum-issue{font-size:9.5px;}
+}

@@ -121,7 +121,7 @@ function cellHtml(sec,floor,work,colspan){
   const noContract = d.found && !isDone && d.contract===false;
   let flagHtml='';
   if(noFront)    flagHtml+=`<div class="c-flag nofront" title="${esc(t('frontClosed'))}">🔒</div>`;
-  if(noContract) flagHtml+=`<div class="c-flag nocontract" title="${esc(t('noContract'))}">⚠</div>`;
+  if(noContract) flagHtml+=`<div class="c-flag nocontract" title="${esc(t('noContract'))}">✍</div>`;
 
   // Численность (требуется людей к сроку) — тумблер «Люди» в панели «Вид»
   const crewHtml=(SHOW.crew && d.found && !isDone && d.crew)?`<div class="c-date">👷${d.crew}</div>`:'';
