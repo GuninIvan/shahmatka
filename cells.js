@@ -5,7 +5,7 @@
 function makeKey(sec,floor,work){ return [String(sec||''),String(floor||''),String(work||'')].join('|||'); }
 function getPct(sec,floor,work){ return DATA[makeKey(sec,floor,work)]?.pct||0; }
 const EMPTY_CELL={found:false,pct:0,updatedAt:'',startDate:'',planDate:'',factDate:'',dev:null,
-                  front:null,contract:null,predReady:null,vol:null,rate:null,unit:'',crew:null};
+                  front:null,rd:null,tender:null,contract:null,predReady:null,vol:null,rate:null,unit:'',crew:null};
 function getCell(sec,floor,work){ return DATA[makeKey(sec,floor,work)]||EMPTY_CELL; }
 
 // TRUE/FALSE из таблицы (чекбоксы, ВПР) → true/false; пусто/мусор → null.
@@ -39,6 +39,10 @@ function parseDev(v){
   const n=parseFloat(s);
   return isNaN(n)?null:n;
 }
+// Готовность фазы подготовки (РД/Тендер/Контракт) из «Списка работ».
+// Правило строгое: готово ТОЛЬКО при TRUE/ИСТИНА; пусто, FALSE, мусор,
+// «не настроено» — всё считаем НЕ готовым (для рисков «что не истина — ложь»).
+function phaseDone(v){ return parseBool(v)===true; }
 
 // ── DATE HELPERS ──────────────────────────────────────────────────
 function normalizeDate(s){
@@ -75,6 +79,18 @@ function devDays(s){
   const d=parseDate(s);if(!d)return null;
   const today=new Date();today.setHours(0,0,0,0);
   return Math.round((today-d)/(1000*60*60*24));
+}
+// Старт СМР по работе = «Контракт / Дата готовности» + «Контракт / Готовность за»
+// (последнее — буфер в днях, число). Нет даты готовности → null.
+function workStartDate(w){
+  if(!w) return null;
+  const base=parseDate(normalizeDate(w['Контракт / Дата готовности']));
+  if(!base) return null;
+  const raw=String(w['Контракт / Готовность за']==null?'':w['Контракт / Готовность за']).trim().replace(',','.');
+  const days=/^-?\d+(\.\d+)?$/.test(raw)?Math.round(parseFloat(raw)):0;
+  const r=new Date(base.getTime());
+  r.setDate(r.getDate()+days);   // календарно: устойчиво к переходам на летнее время
+  return r;
 }
 
 // ── CELL HTML ─────────────────────────────────────────────────────
@@ -119,9 +135,13 @@ function cellHtml(sec,floor,work,colspan){
   // null (колонки не заполнены) — нейтрально, ничего не рисуем.
   // Тумблеры SHOW.front / SHOW.contract (панель «Вид») гасят индикаторы.
   const noFront    = SHOW.front    && d.found && !isDone && d.front===false;
+  const noRd       = PRIV && SHOW.rd       && d.found && !isDone && d.rd===false;
+  const noTender   = PRIV && SHOW.tender   && d.found && !isDone && d.tender===false;
   const noContract = PRIV && SHOW.contract && d.found && !isDone && d.contract===false;
   let flagHtml='';
   if(noFront)    flagHtml+=`<div class="c-flag nofront" title="${esc(t('frontClosed'))}">🔒</div>`;
+  if(noRd)       flagHtml+=`<div class="c-flag nord" title="${esc(t('rdNotReady'))}">📐</div>`;
+  if(noTender)   flagHtml+=`<div class="c-flag notender" title="${esc(t('tenderNotReady'))}">🧾</div>`;
   if(noContract) flagHtml+=`<div class="c-flag nocontract" title="${esc(t('noContract'))}">✍</div>`;
 
   // Численность (требуется людей к сроку) — тумблер «Люди» в панели «Вид»

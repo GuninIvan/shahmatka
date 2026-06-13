@@ -45,7 +45,8 @@ function render(){
 let RISK_OPEN = localStorage.getItem('shk_risk_open')!=='0';
 
 function computeRisks(DL){
-  const noFront=[], noContractMap=new Map();
+  const noFront=[];
+  // ── 1) Фронт закрыт — поячейково (как раньше) ──
   CONFIG.works.forEach(w=>{
     const name=w['Вид работ'];
     const unit=String(w['Единица приемки']||'').trim();
@@ -70,29 +71,50 @@ function computeRisks(DL){
                     : c.sec!==''   ? `${t('sectionPrefix')} ${c.sec}` : t('onSiteOpt');
         noFront.push({w, label, predReady:d.predReady});
       }
-      // контракт: старт уже ≤ выбранной даты, а договора нет
-      // (PRIV: без допуска сервер поле не отдаёт; проверка — подстраховка)
-      if(PRIV && d.contract===false && d.pct<100){
-        const sd=parseDate(d.startDate);
-        if(sd && sd<=DL){
-          const prev=noContractMap.get(name);
-          if(!prev || sd<prev.start) noContractMap.set(name,{w, start:sd});
-        }
-      }
     });
   });
-  return {noFront, noContract:[...noContractMap.values()].sort((a,b)=>a.start-b.start)};
+
+  // ── 2–4) Подготовка по фазам — на уровне вида работ, из «Списка работ».
+  // Риск фазы X показываем, когда «X / Готовность» ≠ TRUE И срок этой фазы
+  // «X / Дата готовности» ≤ выбранной даты (= дедлайн фазы уже наступил).
+  // Старт СМР = «Контракт / Дата готовности» + «Контракт / Готовность за».
+  // Только с допуском: без него колонок фаз в конфиге нет вовсе.
+  const rd=[], tender=[], contract=[];
+  if(PRIV){
+    CONFIG.works.forEach(w=>{
+      const ws  = workStartDate(w);
+      const wsS = ws ? toDmy(ws) : '';
+      const dueReached = phase=>{
+        const due=parseDate(normalizeDate(w[phase+' / Дата готовности']));
+        return due && due<=DL;
+      };
+      if(!phaseDone(w['РД / Готовность']) && dueReached('РД')){
+        const td=parseDate(normalizeDate(w['Тендер / Начало работ']));
+        rd.push({w, tenderStart: td?toDmy(td):'', workStart: wsS});
+      }
+      if(!phaseDone(w['Тендер / Готовность']) && dueReached('Тендер')){
+        tender.push({w, workStart: wsS});
+      }
+      if(!phaseDone(w['Контракт / Готовность']) && dueReached('Контракт')){
+        contract.push({w, workStart: wsS});
+      }
+    });
+  }
+  return {noFront, rd, tender, contract};
 }
 
 function renderRiskPanel(DL){
   const rw=document.getElementById('riskWrap');
   if(!rw) return;
-  const {noFront, noContract}=computeRisks(DL);
-  if(!noFront.length && !noContract.length){ rw.innerHTML=''; rw.style.display='none'; return; }
+  const {noFront, rd, tender, contract}=computeRisks(DL);
+  const total=noFront.length+rd.length+tender.length+contract.length;
+  if(!total){ rw.innerHTML=''; rw.style.display='none'; return; }
   rw.style.display='block';
   const sum=[
-    noFront.length   ? `🔒 ${noFront.length}`   : '',
-    noContract.length? `✍ ${noContract.length}` : ''
+    noFront.length ? `🔒 ${noFront.length}` : '',
+    rd.length      ? `📐 ${rd.length}`      : '',
+    tender.length  ? `🧾 ${tender.length}`  : '',
+    contract.length? `✍ ${contract.length}` : ''
   ].filter(Boolean).join(' · ');
   let h=`<div class="risk-card${RISK_OPEN?'':' closed'}">`;
   h+=`<div class="risk-hdr" onclick="toggleRisk()"><b>⚠ ${t('risksTitle')}</b> <span class="risk-sum">${sum}</span><span class="risk-arr">${RISK_OPEN?'▾':'▸'}</span></div>`;
@@ -104,12 +126,20 @@ function renderRiskPanel(DL){
         return `<span class="risk-it">${esc(workLabel(i.w))} · ${esc(i.label)}${pr}</span>`;
       }).join('')+(noFront.length>12?` <span class="risk-it">+${noFront.length-12}…</span>`:'')+`</div>`;
     }
-    if(noContract.length){
-      h+=`<div class="risk-line"><b>✍ ${t('noContract')} · ${noContract.length}</b></div>`;
-      h+=`<div class="risk-items">`+noContract.map(i=>{
-        return `<span class="risk-it">${esc(workLabel(i.w))} · ${t('startShort')} ${esc(toDmy(i.start))}</span>`;
+    // Перед датами — наименование вида работ (как во «Фронте»)
+    const phaseBlock=(arr,ico,title,withTender)=>{
+      if(!arr.length) return;
+      h+=`<div class="risk-line"><b>${ico} ${title} · ${arr.length}</b></div>`;
+      h+=`<div class="risk-items">`+arr.map(i=>{
+        const parts=[esc(workLabel(i.w))];
+        if(withTender && i.tenderStart) parts.push(`${t('riskTenderStart')} ${esc(i.tenderStart)}`);
+        if(i.workStart)                 parts.push(`${t('prepStart')} ${esc(i.workStart)}`);
+        return `<span class="risk-it">${parts.join(' · ')}</span>`;
       }).join('')+`</div>`;
-    }
+    };
+    phaseBlock(rd,      '📐', t('riskNoRd'),     true);
+    phaseBlock(tender,  '🧾', t('riskNoTender'), false);
+    phaseBlock(contract,'✍',  t('noContract'),   false);
   }
   h+=`</div>`;
   rw.innerHTML=h;

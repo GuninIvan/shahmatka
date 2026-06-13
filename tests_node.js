@@ -26,7 +26,8 @@ global.fetch = () => Promise.reject(new Error('no network in tests'));
   const code = ['cells.js', 'gantt.js', 'tasks.js', 'summary.js', 'prep.js']
     .map(f => fs.readFileSync(__dirname + '/' + f, 'utf8')).join('\n');
   const exports = ['makeKey','parseDev','normalizeDate','parseDate','fmtShort',
-                   'taskTarget','isWorkApplicable','splitSummaryGrid','sumPctVal','parseGate','prepPhaseStatus','ganttAgg'];
+                   'taskTarget','isWorkApplicable','splitSummaryGrid','sumPctVal','parseGate','prepPhaseStatus','ganttAgg',
+                   'phaseDone','workStartDate'];
   (0, eval)(code + '\n' + exports.map(n => `globalThis.${n}=${n};`).join(''));
 }
 
@@ -206,6 +207,29 @@ check('нет дат → dev null', () => {
   assert.strictEqual(a.dev, null);
 });
 global.DATA = {};
+
+// ── phaseDone: готовность фазы строго по TRUE ──
+console.log('phaseDone');
+check('TRUE → готово',         () => assert.strictEqual(phaseDone(true), true));
+check('"TRUE" → готово',       () => assert.strictEqual(phaseDone('TRUE'), true));
+check('"истина" → готово',     () => assert.strictEqual(phaseDone('истина'), true));
+check('FALSE → не готово',     () => assert.strictEqual(phaseDone(false), false));
+check('пусто → не готово',     () => assert.strictEqual(phaseDone(''), false));
+check('0 → не готово',         () => assert.strictEqual(phaseDone(0), false));
+check('мусор → не готово',     () => assert.strictEqual(phaseDone('абвгд'), false));
+check('undefined → не готово', () => assert.strictEqual(phaseDone(undefined), false));
+
+// ── workStartDate: старт СМР = Контракт/Дата готовности + Готовность за (дней) ──
+console.log('workStartDate');
+const wS = (due, za) => ({'Контракт / Дата готовности': due, 'Контракт / Готовность за': za});
+check('16.04.2027 + 15 → 01.05.2027', () => assert.deepStrictEqual(workStartDate(wS('16.04.2027', 15)), d(1,5,2027)));
+check('буфер строкой "15"',           () => assert.deepStrictEqual(workStartDate(wS('16.04.2027','15')), d(1,5,2027)));
+check('буфер с запятой "15,0"',       () => assert.deepStrictEqual(workStartDate(wS('16.04.2027','15,0')), d(1,5,2027)));
+check('без буфера → сама дата',       () => assert.deepStrictEqual(workStartDate(wS('16.04.2027','')), d(16,4,2027)));
+check('iso-дата + 15',                () => assert.deepStrictEqual(workStartDate(wS('2027-04-16',15)), d(1,5,2027)));
+check('переход через год',            () => assert.deepStrictEqual(workStartDate(wS('20.12.2026',15)), d(4,1,2027)));
+check('нет даты готовности → null',   () => assert.strictEqual(workStartDate(wS('',15)), null));
+check('null работа → null',           () => assert.strictEqual(workStartDate(null), null));
 
 // ── Итог ──
 console.log('\n' + (fail ? '✗ ПРОВАЛЕНО: ' + fail + ' из ' + (pass + fail) : '✓ Все ' + pass + ' тестов прошли'));

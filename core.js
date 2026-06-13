@@ -167,7 +167,7 @@ let SUMMARY= [];
 let MODE   = 'section';
 // «Что показывать» в ячейке (галочки), хранится в localStorage
 let SHOW = { pct:true, dstart:false, dend:true, dev:true, crew:false, vol:false,
-             front:true, contract:true, sec:true, fl:true };
+             front:true, rd:true, tender:true, contract:true, sec:true, fl:true };
 try{ const s=JSON.parse(localStorage.getItem('shk_show')||'null'); if(s) SHOW=Object.assign(SHOW,s);}catch(e){}
 let DEADLINE = null;   // режим «к дате»: Date или null
 let FILTER_SEC   = new Set();
@@ -346,6 +346,8 @@ async function loadAll(){
         factDate: normalizeDate(r['Дата факт']),
         dev:      parseDev(r['Отставание']),
         front:    parseGate(r['Фронт открыт']),
+        rd:       parseGate(r['РД выпущено']),
+        tender:   parseGate(r['Тендер проведен']),
         contract: parseGate(r['Контракт заключен']),
         predReady:parseDev(r['Готовность предшественника']),   // % или null («не назначен»)
         vol:      parseFloat(r['Объем'])||null,

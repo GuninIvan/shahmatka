@@ -70,30 +70,33 @@ function splitSummaryGrid(grid){
 // 🔒×N — N незавершённых ячеек с закрытым фронтом; ✍ — контракт не заключён.
 // Считается по DATA (ключ: секция|||этаж|||работа).
 function summaryIssues(){
-  const byWork=new Map();   // имя работы → {lock, noContract}
+  const byWork=new Map();   // имя работы → счётчики незавершённых ячеек по признакам
   Object.keys(DATA).forEach(k=>{
     const name=k.split('|||')[2]; if(!name) return;
     const d=DATA[k];
-    let e=byWork.get(name); if(!e){ e={lock:0,noContract:false}; byWork.set(name,e); }
-    if(d.front===false && d.pct<100) e.lock++;
-    if(d.contract===false && d.pct<100) e.noContract=true;
+    let e=byWork.get(name); if(!e){ e={lock:0,rd:0,tender:0,contract:0}; byWork.set(name,e); }
+    if(d.pct>=100) return;
+    if(d.front===false)    e.lock++;
+    if(d.rd===false)       e.rd++;
+    if(d.tender===false)   e.tender++;
+    if(d.contract===false) e.contract++;
   });
-  const byGroup=new Map();  // группа → {lock, contractWorks:Set}
+  const byGroup=new Map();  // группа → суммы по входящим работам
   CONFIG.works.forEach(w=>{
     const e=byWork.get(w['Вид работ']); if(!e) return;
     const g=String(w['Группа работ']||'').trim()||'—';
-    let ge=byGroup.get(g); if(!ge){ ge={lock:0,contractWorks:new Set()}; byGroup.set(g,ge); }
-    ge.lock+=e.lock;
-    if(e.noContract) ge.contractWorks.add(w['Вид работ']);
+    let ge=byGroup.get(g); if(!ge){ ge={lock:0,rd:0,tender:0,contract:0}; byGroup.set(g,ge); }
+    ge.lock+=e.lock; ge.rd+=e.rd; ge.tender+=e.tender; ge.contract+=e.contract;
   });
   return {byWork, byGroup};
 }
 function issueText(e){
   if(!e) return '';
   const parts=[];
-  if(e.lock) parts.push(`🔒×${e.lock}`);
-  if(e.noContract) parts.push(`✍ ${t('noContract')}`);
-  if(e.contractWorks && e.contractWorks.size) parts.push(`✍×${e.contractWorks.size}`);
+  if(e.lock)     parts.push(`🔒×${e.lock}`);
+  if(e.rd)       parts.push(`📐×${e.rd}`);
+  if(e.tender)   parts.push(`🧾×${e.tender}`);
+  if(e.contract) parts.push(`✍×${e.contract}`);
   return parts.join(' · ');
 }
 

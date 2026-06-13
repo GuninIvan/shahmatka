@@ -194,10 +194,12 @@ function buildViewPanel(){
     ['crew',    t('showCrew')],
     ['vol',     t('showVol')],
     ['front',   t('showFront')],
+    ['rd',      t('showRd')],
+    ['tender',  t('showTender')],
     ['contract',t('showContract')],
     ['sec',     t('showSec')],
     ['fl',      t('showFloor')]
-  ].filter(([k])=> PRIV || k!=='contract');   // ✍ — только с допуском
+  ].filter(([k])=> PRIV || (k!=='contract' && k!=='rd' && k!=='tender'));   // 📐🧾✍ — только с допуском
   p.innerHTML = items.map(([k,lbl])=>
     `<label class="vp-item"><input type="checkbox" data-show="${k}"${SHOW[k]?' checked':''}>${esc(lbl)}</label>`
   ).join('');
